@@ -1,0 +1,480 @@
+category: Analytics & SIEM
+commonfields:
+  id: DatadogCloudSIEM
+  version: -1
+configuration:
+- defaultvalue: datadoghq.com
+  display: Datadog site url
+  name: site
+  required: true
+  type: 0
+- additionalinfo: The API Key to use for authentication
+  display: API key
+  name: api_key
+  required: true
+  type: 0
+- additionalinfo: The API Key to use for authentication.
+  display: Application Key
+  hidden: false
+  name: app_key
+  required: false
+  type: 0
+- display: Trust any certificate (not secure)
+  name: insecure
+  required: false
+  type: 8
+- display: Use system proxy settings
+  name: proxy
+  required: false
+  type: 8
+description: |-
+  Datadog is an observability service for cloud-scale applications, providing monitoring of servers, databases, tools, and services, through a SaaS-based data analytics platform.
+
+  The SaaS platform integrates and automates infrastructure monitoring, application performance monitoring and log management to provide unified, real-time observability of our customers' entire technology stack.
+display: DatadogCloudSIEM
+name: DatadogCloudSIEM
+script:
+  commands:
+  - arguments:
+    - default: false
+      description: '[Enter a description of the argument, including any important
+        information users need to know, for example, default values.]'
+      isArray: false
+      name: dummy
+      required: true
+      secret: false
+    deprecated: false
+    description: '[Enter a description of the command, including any important information
+      users need to know, for example required permissions.]'
+    execution: false
+    name: baseintegration-dummy
+    outputs:
+    - contextPath: BaseIntegration.Output
+      description: '[Enter a description of the data returned in this output.]'
+      type: String
+  - arguments:
+    - default: false
+      isArray: false
+      required: false
+      secret: false
+    - default: false
+      description: The title of the incident ot create at datadog
+      isArray: false
+      name: title
+      required: true
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      defaultValue: active
+      description: The status of the incident at datadog
+      isArray: false
+      name: status
+      predefined:
+      - active
+      - ' stable'
+      - ' resolved'
+      required: true
+      secret: false
+    deprecated: false
+    description: creates an incident in datadog endpoint and returns created incident
+      response
+    execution: false
+    name: datadog-incident-create
+  - arguments:
+    - default: false
+      description: "The body of the event.\n\nLimited to 4000 characters.\n \nThe\
+        \ text supports markdown. To use markdown in the event text, start the text\
+        \ block with %%% \\n and end the text block with \\n %%% "
+      isArray: false
+      name: text
+      required: true
+      secret: false
+    - default: false
+      description: The title of an event.
+      isArray: false
+      name: title
+      required: true
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: If an alert event is enabled, set its type.
+      isArray: false
+      name: alert_type
+      predefined:
+      - error
+      - warning
+      - info
+      - success
+      - user_update
+      - recommendation
+      - snapshot
+      required: false
+      secret: false
+    - default: false
+      description: "Limited to events no older than 18 hours.\n\nFormat : yyyy-MM-dd’\
+        T’HH:mm:ssZ "
+      isArray: false
+      name: date_happened
+      required: false
+      secret: false
+    - default: false
+      description: A device name.
+      isArray: false
+      name: device_name
+      required: false
+      secret: false
+    - default: false
+      description: 'Host name to associate with the event '
+      isArray: false
+      name: host_name
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: The priority of the event.
+      isArray: false
+      name: priority
+      predefined:
+      - normal
+      - low
+      required: false
+      secret: false
+    - default: false
+      description: ID of the parent event.
+      isArray: false
+      name: related_event_id
+      required: false
+      secret: false
+    - default: false
+      description: "A list of tags to apply to the event. \n \nComma seperated strings.\n\
+        \ \nEx: \"environment:production, region:East” "
+      isArray: false
+      name: tags
+      required: false
+      secret: false
+    - default: false
+      description: "An arbitrary string to use for aggregation. \n \nIf you specify\
+        \ a key, all events using that key are grouped together in the Event Stream.\
+        \ \n\nLimited to 100 characters."
+      isArray: false
+      name: aggregation_key
+      required: false
+      secret: false
+    - default: false
+      description: The type of event being posted. A complete list of source attribute
+        values available here. https://docs.datadoghq.com/integrations/faq/list-of-api-source-attribute-value/
+      isArray: false
+      name: source_type_name
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to post events to the stream.
+    execution: false
+    name: datadog-event-create
+    outputs:
+    - contextPath: Datadog.Event.id
+      description: The id of the event.
+      type: Number
+  - arguments:
+    - default: false
+      description: The ID of the event.
+      isArray: false
+      name: event_id
+      required: false
+      secret: false
+    - default: false
+      description: "Start Date \n\nFormat :  yyyy-MM-dd’T’HH:mm:ssZ Or  '-1days' "
+      isArray: false
+      name: start_date
+      required: false
+      secret: false
+    - default: false
+      description: "End Date\n \nFormat : yyyy-MM-dd’T’HH:mm:ssZ Or  '-1days' "
+      isArray: false
+      name: end_date
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: The priority of the event.
+      isArray: false
+      name: priority
+      predefined:
+      - normal
+      - low
+      required: false
+      secret: false
+    - default: false
+      description: |-
+        A comma separated string of sources.
+
+        A complete list of source attribute values available here: https://docs.datadoghq.com/integrations/faq/list-of-api-source-attribute-value/
+      isArray: false
+      name: sources
+      required: false
+      secret: false
+    - default: false
+      description: "A comma separated list indicating what tags, if any, should be\
+        \ used to filter the list of events. \n \nComma seperated string \n\nEx: \"\
+        environment:production, region:East"
+      isArray: false
+      name: tags
+      required: false
+      secret: false
+    - default: false
+      description: Set unaggregated to true to return all events within the specified
+        [start,end] timeframe.
+      isArray: false
+      name: unaggregated
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: Set exclude_aggregate to true to only return unaggregated events
+        where is_aggregate=false in the response.
+      isArray: false
+      name: exclude_aggregate
+      predefined:
+      - 'True'
+      - 'False'
+      required: false
+      secret: false
+    - default: false
+      description: The page number. Default is 1.
+      isArray: false
+      name: page
+      required: false
+      secret: false
+    - default: false
+      description: The maximum number of records to return from the collection. Limit
+        default value is 50. If the page_size argument is set by the user then the
+        limit argument will be ignored.
+      isArray: false
+      name: limit
+      required: false
+      secret: false
+    - default: false
+      description: The number of requested results per page. Default is 50.
+      isArray: false
+      name: page_size
+      required: false
+      secret: false
+    deprecated: false
+    description: Get a list of Events / Get the details of a particular Event.
+    execution: false
+    name: datadog-event-list
+    outputs:
+    - contextPath: Datadog.Event.alert_type
+      description: 'Allowed enum values: error,warning,info,success,user_update,recommendation,snapshot'
+      type: String
+    - contextPath: Datadog.Event.date_happened
+      description: POSIX timestamp of the event
+      type: Number
+    - contextPath: Datadog.Event.device_name
+      description: 'A device name. '
+      type: String
+    - contextPath: Datadog.Event.id
+      description: Integer ID of the event.
+      type: Number
+    - contextPath: Datadog.Event.priority
+      description: 'The priority of the event. For example, normal or low. Allowed
+        enum values: normal, low.'
+      type: String
+    - contextPath: Datadog.Event.text
+      description: The body of the event. Limited to 4000 characters. The text supports
+        markdown.
+      type: String
+    - contextPath: Datadog.Event.source_type_name
+      description: The type of event being posted.
+      type: String
+    - contextPath: Datadog.Event.tags
+      description: A list of tags to apply to the event.
+      type: Unknown
+    - contextPath: Datadog.Event.url
+      description: URL of the event.
+      type: String
+    - contextPath: Datadog.Event.status
+      description: The status of the event.
+      type: String
+    - contextPath: Datadog.Event.host
+      description: Host name to associate with the event. Any tags associated with
+        the host are also applied to this event.
+      type: String
+  - arguments:
+    - default: false
+      description: The id of an incident
+      isArray: false
+      name: incident_id
+      required: false
+      secret: false
+    - default: false
+      description: Size for a given page.
+      isArray: false
+      name: page_size
+      required: false
+      secret: false
+    - default: false
+      description: 'Specific offset to use as the beginning of the returned page. '
+      isArray: false
+      name: page
+      required: false
+      secret: false
+    - default: true
+      defaultValue: '50'
+      description: No of incidents to be fetched
+      isArray: false
+      name: limit
+      required: false
+      secret: false
+    - default: false
+      description: The status of the incident.
+      isArray: false
+      name: state
+      required: false
+      secret: false
+    - default: false
+      description: The severity of the incident.
+      isArray: false
+      name: severity
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: A flag indicating whether the incident caused customer impact.
+      isArray: false
+      name: customer_impacted
+      predefined:
+      - 'True'
+      - ' False'
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: 'Specify how the incident was detected with these default options:
+        customer, employee, monitor, other, or unknown.'
+      isArray: false
+      name: detection_method
+      predefined:
+      - customer
+      - ' employee'
+      - ' monitor'
+      - ' other'
+      - ' unknown'
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: Specifies the order of returned incidents.
+      isArray: false
+      name: sort
+      predefined:
+      - asc
+      - desc
+      required: false
+      secret: false
+    deprecated: false
+    description: Get an incident / Fetch incidents.
+    execution: false
+    name: datadog-incident-list
+  - arguments:
+    - default: false
+      isArray: false
+      name: page
+      required: false
+      secret: false
+    - default: false
+      description: 'No of tags to be fetched '
+      isArray: false
+      name: page_size
+      required: false
+      secret: false
+    - default: true
+      defaultValue: '50'
+      description: 'Default tags to be fetched '
+      isArray: false
+      name: limit
+      required: false
+      secret: false
+    - default: false
+      description: 'When specified, filters host list to those tags with the specified
+        source. '
+      isArray: false
+      name: source
+      required: false
+      secret: false
+    deprecated: false
+    description: Return a mapping of tags to hosts for your whole infrastructure.
+    execution: false
+    name: datadog-tag-list
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    - default: false
+      description: A list of tags to apply to the host.
+      isArray: false
+      name: tags
+      required: true
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to add new tags to a host, optionally specifying
+      where these tags come from.
+    execution: false
+    name: datadog-host-tag-create
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    deprecated: false
+    description: Return the list of tags that apply to a given host.
+    execution: false
+    name: datadog-host-tag-get
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    - default: false
+      description: "A list of tags to apply to the host  \n \nPrevious tags will be\
+        \ replaced by new tags. \n \nComma seperated values."
+      isArray: false
+      name: tags
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to replace all tags in an integration source
+      with those supplied in the request.
+    execution: false
+    name: datadog-host-tag-update
+  - arguments:
+    - default: false
+      description: Host name to remove associated tags.
+      isArray: false
+      name: host_name
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to remove all user-assigned tags for a single
+      host.
+    execution: false
+    name: datadog-host-tag-delete
+  dockerimage: devtesting/datadog-api-client:1.0.0.1676052087
+  feed: false
+  isfetch: false
+  longRunning: false
+  longRunningPort: false
+  runonce: false
+  script: '-'
+  subtype: python3
+  type: python
+tests:
+- No tests (auto formatted)
+fromversion: 5.5.0

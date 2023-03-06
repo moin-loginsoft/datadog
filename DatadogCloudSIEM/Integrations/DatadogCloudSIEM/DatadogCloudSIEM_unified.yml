@@ -1,0 +1,826 @@
+category: Analytics & SIEM
+commonfields:
+  id: DatadogCloudSIEM
+  version: -1
+configuration:
+- defaultvalue: datadoghq.com
+  display: Datadog site url
+  name: site
+  required: true
+  type: 0
+- additionalinfo: The API Key to use for authentication
+  display: API key
+  name: api_key
+  required: true
+  type: 0
+- additionalinfo: The API Key to use for authentication.
+  display: Application Key
+  hidden: false
+  name: app_key
+  required: false
+  type: 0
+- display: Trust any certificate (not secure)
+  name: insecure
+  required: false
+  type: 8
+- display: Use system proxy settings
+  name: proxy
+  required: false
+  type: 8
+description: |-
+  Datadog is an observability service for cloud-scale applications, providing monitoring of servers, databases, tools, and services, through a SaaS-based data analytics platform.
+
+  The SaaS platform integrates and automates infrastructure monitoring, application performance monitoring and log management to provide unified, real-time observability of our customers' entire technology stack.
+detaileddescription: |-
+  ## BaseIntegration Help
+
+  Markdown file for integration configuration  help snippet. In this file add:
+
+  - Brief information about how to retrieve the API key of your product
+  - Other useful information on how to configure your integration in XSOAR
+
+  Since this is a Markdown file, we encourage you to use MD formatting for sections, sub-sections, lists, etc.
+display: DatadogCloudSIEM
+name: DatadogCloudSIEM
+script:
+  commands:
+  - arguments:
+    - default: false
+      description: '[Enter a description of the argument, including any important
+        information users need to know, for example, default values.]'
+      isArray: false
+      name: dummy
+      required: true
+      secret: false
+    deprecated: false
+    description: '[Enter a description of the command, including any important information
+      users need to know, for example required permissions.]'
+    execution: false
+    name: baseintegration-dummy
+    outputs:
+    - contextPath: BaseIntegration.Output
+      description: '[Enter a description of the data returned in this output.]'
+      type: String
+  - arguments:
+    - default: false
+      description: The title of the incident ot create at datadog
+      isArray: false
+      name: title
+      required: true
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      defaultValue: active
+      description: The status of the incident at datadog
+      isArray: false
+      name: status
+      predefined:
+      - active
+      - ' stable'
+      - ' resolved'
+      required: true
+      secret: false
+    deprecated: false
+    description: creates an incident in datadog endpoint and returns created incident
+      response
+    execution: false
+    name: datadog-incident-create
+  - arguments:
+    - default: false
+      description: "The body of the event.\n\nLimited to 4000 characters.\n \nThe\
+        \ text supports markdown. To use markdown in the event text, start the text\
+        \ block with %%% \\n and end the text block with \\n %%% "
+      isArray: false
+      name: text
+      required: true
+      secret: false
+    - default: false
+      description: The title of an event.
+      isArray: false
+      name: title
+      required: true
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: If an alert event is enabled, set its type.
+      isArray: false
+      name: alert_type
+      predefined:
+      - error
+      - warning
+      - info
+      - success
+      - user_update
+      - recommendation
+      - snapshot
+      required: false
+      secret: false
+    - default: false
+      description: "Limited to events no older than 18 hours.\n\nFormat : yyyy-MM-dd’\
+        T’HH:mm:ssZ "
+      isArray: false
+      name: date_happened
+      required: false
+      secret: false
+    - default: false
+      description: A device name.
+      isArray: false
+      name: device_name
+      required: false
+      secret: false
+    - default: false
+      description: 'Host name to associate with the event '
+      isArray: false
+      name: host_name
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: The priority of the event.
+      isArray: false
+      name: priority
+      predefined:
+      - normal
+      - low
+      required: false
+      secret: false
+    - default: false
+      description: ID of the parent event.
+      isArray: false
+      name: related_event_id
+      required: false
+      secret: false
+    - default: false
+      description: "A list of tags to apply to the event. \n \nComma seperated strings.\n\
+        \ \nEx: \"environment:production, region:East” "
+      isArray: false
+      name: tags
+      required: false
+      secret: false
+    - default: false
+      description: "An arbitrary string to use for aggregation. \n \nIf you specify\
+        \ a key, all events using that key are grouped together in the Event Stream.\
+        \ \n\nLimited to 100 characters."
+      isArray: false
+      name: aggregation_key
+      required: false
+      secret: false
+    - default: false
+      description: The type of event being posted. A complete list of source attribute
+        values available here. https://docs.datadoghq.com/integrations/faq/list-of-api-source-attribute-value/
+      isArray: false
+      name: source_type_name
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to post events to the stream.
+    execution: false
+    name: datadog-event-create
+    outputs:
+    - contextPath: Datadog.Event.id
+      description: The id of the event.
+      type: Number
+  - arguments:
+    - default: false
+      description: The ID of the event.
+      isArray: false
+      name: event_id
+      required: false
+      secret: false
+    - default: false
+      description: "Start Date \n\nFormat :  yyyy-MM-dd’T’HH:mm:ssZ Or  '-1days' "
+      isArray: false
+      name: start_date
+      required: false
+      secret: false
+    - default: false
+      description: "End Date\n \nFormat : yyyy-MM-dd’T’HH:mm:ssZ Or  '-1days' "
+      isArray: false
+      name: end_date
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: The priority of the event.
+      isArray: false
+      name: priority
+      predefined:
+      - normal
+      - low
+      required: false
+      secret: false
+    - default: false
+      description: |-
+        A comma separated string of sources.
+
+        A complete list of source attribute values available here: https://docs.datadoghq.com/integrations/faq/list-of-api-source-attribute-value/
+      isArray: false
+      name: sources
+      required: false
+      secret: false
+    - default: false
+      description: "A comma separated list indicating what tags, if any, should be\
+        \ used to filter the list of events. \n \nComma seperated string \n\nEx: \"\
+        environment:production, region:East"
+      isArray: false
+      name: tags
+      required: false
+      secret: false
+    - default: false
+      description: Set unaggregated to true to return all events within the specified
+        [start,end] timeframe.
+      isArray: false
+      name: unaggregated
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: Set exclude_aggregate to true to only return unaggregated events
+        where is_aggregate=false in the response.
+      isArray: false
+      name: exclude_aggregate
+      predefined:
+      - 'True'
+      - 'False'
+      required: false
+      secret: false
+    - default: false
+      description: The page number. Default is 1.
+      isArray: false
+      name: page
+      required: false
+      secret: false
+    - default: false
+      description: The maximum number of records to return from the collection. Limit
+        default value is 50. If the page_size argument is set by the user then the
+        limit argument will be ignored.
+      isArray: false
+      name: limit
+      required: false
+      secret: false
+    - default: false
+      description: The number of requested results per page. Default is 50.
+      isArray: false
+      name: page_size
+      required: false
+      secret: false
+    deprecated: false
+    description: Get a list of Events / Get the details of a particular Event.
+    execution: false
+    name: datadog-event-list
+    outputs:
+    - contextPath: Datadog.Event.alert_type
+      description: 'Allowed enum values: error,warning,info,success,user_update,recommendation,snapshot'
+      type: String
+    - contextPath: Datadog.Event.date_happened
+      description: POSIX timestamp of the event
+      type: Number
+    - contextPath: Datadog.Event.device_name
+      description: 'A device name. '
+      type: String
+    - contextPath: Datadog.Event.id
+      description: Integer ID of the event.
+      type: Number
+    - contextPath: Datadog.Event.priority
+      description: 'The priority of the event. For example, normal or low. Allowed
+        enum values: normal, low.'
+      type: String
+    - contextPath: Datadog.Event.text
+      description: The body of the event. Limited to 4000 characters. The text supports
+        markdown.
+      type: String
+    - contextPath: Datadog.Event.source_type_name
+      description: The type of event being posted.
+      type: String
+    - contextPath: Datadog.Event.tags
+      description: A list of tags to apply to the event.
+      type: Unknown
+    - contextPath: Datadog.Event.url
+      description: URL of the event.
+      type: String
+    - contextPath: Datadog.Event.status
+      description: The status of the event.
+      type: String
+    - contextPath: Datadog.Event.host
+      description: Host name to associate with the event. Any tags associated with
+        the host are also applied to this event.
+      type: String
+  - arguments:
+    - default: false
+      description: The id of an incident
+      isArray: false
+      name: incident_id
+      required: false
+      secret: false
+    - default: false
+      description: Size for a given page.
+      isArray: false
+      name: page_size
+      required: false
+      secret: false
+    - default: false
+      description: 'Specific offset to use as the beginning of the returned page. '
+      isArray: false
+      name: page
+      required: false
+      secret: false
+    - default: true
+      defaultValue: '50'
+      description: No of incidents to be fetched
+      isArray: false
+      name: limit
+      required: false
+      secret: false
+    - default: false
+      description: The status of the incident.
+      isArray: false
+      name: state
+      required: false
+      secret: false
+    - default: false
+      description: The severity of the incident.
+      isArray: false
+      name: severity
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: A flag indicating whether the incident caused customer impact.
+      isArray: false
+      name: customer_impacted
+      predefined:
+      - 'True'
+      - ' False'
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: 'Specify how the incident was detected with these default options:
+        customer, employee, monitor, other, or unknown.'
+      isArray: false
+      name: detection_method
+      predefined:
+      - customer
+      - ' employee'
+      - ' monitor'
+      - ' other'
+      - ' unknown'
+      required: false
+      secret: false
+    - auto: PREDEFINED
+      default: false
+      description: Specifies the order of returned incidents.
+      isArray: false
+      name: sort
+      predefined:
+      - asc
+      - desc
+      required: false
+      secret: false
+    deprecated: false
+    description: Get an incident / Fetch incidents.
+    execution: false
+    name: datadog-incident-list
+  - arguments:
+    - default: false
+      isArray: false
+      name: page
+      required: false
+      secret: false
+    - default: false
+      description: 'No of tags to be fetched '
+      isArray: false
+      name: page_size
+      required: false
+      secret: false
+    - default: true
+      defaultValue: '50'
+      description: 'Default tags to be fetched '
+      isArray: false
+      name: limit
+      required: false
+      secret: false
+    - default: false
+      description: 'When specified, filters host list to those tags with the specified
+        source. '
+      isArray: false
+      name: source
+      required: false
+      secret: false
+    deprecated: false
+    description: Return a mapping of tags to hosts for your whole infrastructure.
+    execution: false
+    name: datadog-tag-list
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    - default: false
+      description: A list of tags to apply to the host.
+      isArray: false
+      name: tags
+      required: true
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to add new tags to a host, optionally specifying
+      where these tags come from.
+    execution: false
+    name: datadog-host-tag-create
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    deprecated: false
+    description: Return the list of tags that apply to a given host.
+    execution: false
+    name: datadog-host-tag-get
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    - default: false
+      description: "A list of tags to apply to the host  \n \nPrevious tags will be\
+        \ replaced by new tags. \n \nComma seperated values."
+      isArray: false
+      name: tags
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to replace all tags in an integration source
+      with those supplied in the request.
+    execution: false
+    name: datadog-host-tag-update
+  - arguments:
+    - default: false
+      description: Host name to remove associated tags.
+      isArray: false
+      name: host_name
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to remove all user-assigned tags for a single
+      host.
+    execution: false
+    name: datadog-host-tag-delete
+  dockerimage: devtesting/datadog-api-client:1.0.0.1676052087
+  feed: false
+  isfetch: false
+  longRunning: false
+  longRunningPort: false
+  runonce: false
+  script: |-
+    """Base Integration for Cortex XSOAR (aka Demisto)
+
+    This is an empty Integration with some basic structure according
+    to the code conventions.
+
+    MAKE SURE YOU REVIEW/REPLACE ALL THE COMMENTS MARKED AS "TODO"
+
+    Developer Documentation: https://xsoar.pan.dev/docs/welcome
+    Code Conventions: https://xsoar.pan.dev/docs/integrations/code-conventions
+    Linting: https://xsoar.pan.dev/docs/integrations/linting
+
+    This is an empty structure file. Check an example at;
+    https://github.com/demisto/content/blob/master/Packs/HelloWorld/Integrations/HelloWorld/HelloWorld.py
+
+    """
+
+
+      # noqa # pylint: disable=unused-wildcard-import
+      # noqa
+
+    import urllib3
+    from typing import Dict, Any
+
+    from os import environ
+    from datadog_api_client import ApiClient, Configuration
+    from datadog_api_client.v1.api.authentication_api import AuthenticationApi
+    from datadog_api_client.v1.api.events_api import EventsApi
+    from datadog_api_client.v1.model.event_create_request import EventCreateRequest
+    from datadog_api_client.v1.model.event_priority import EventPriority
+    from datadog_api_client.v1.model.event_alert_type import EventAlertType
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    from math import floor
+
+
+    # Disable insecure warnings
+    urllib3.disable_warnings()
+
+    """ CONSTANTS """
+
+    DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"  # ISO8601 format with UTC, default in XSOAR
+    DEFAULT_OFFSET = 0
+    DEFAULT_PAGE_SIZE = 50
+    PAGE_NUMBER_ERROR_MSG = "Invalid Input Error: page number should be greater than zero."
+    PAGE_SIZE_ERROR_MSG = "Invalid Input Error: page size should be greater than zero."
+    DEFAULT_FROM_DATE = "-7days"
+    DEFAULT_TO_DATE = "now"
+    INTEGRATION_CONTEXT_NAME = 'Datadog'
+
+    """ HELPER FUNCTIONS """
+
+
+    def date_string_to_timestamp(date: str) -> int:
+        return int(
+            datetime.strptime(date, DATE_FORMAT).timestamp()
+        )
+
+
+    def str_to_bool(s):
+        """
+        Convert a string representation of a boolean value to a Python boolean value.
+        'True', 'true', 'Yes', 'yes', and '1' are considered True.
+        'False', 'false', 'No', 'no', and '0' are considered False.
+        """
+        if s.lower() in ('true', 'yes', '1'):
+            return True
+        elif s.lower() in ('false', 'no', '0'):
+            return False
+        else:
+            raise ValueError("Invalid string value for boolean conversion: " + s)
+
+
+    def get_command_title_string(sub_context: str, page: Optional[int],
+                                 page_size: Optional[int]) -> str:
+        """
+        Define command title
+        Args:
+            sub_context: Commands sub_context
+            page: page_number
+            page_size: page_size
+        Returns:
+            Returns the title for the readable output
+        """
+        if page and page_size and (page > 0 and page_size > 0):
+            return f'{sub_context} List\nCurrent page size: {page_size}\n' \
+                   f'Showing page {page} out of others that may exist'
+
+        return f"{sub_context} List"
+
+
+    def is_within_18_hours(timestamp):
+        # Calculate the current time
+        current_time = datetime.now()
+
+        # Convert the given timestamp to datetime object
+        timestamp_time = datetime.fromtimestamp(timestamp)
+
+        # Calculate the time difference between current time and timestamp
+        time_diff = current_time - timestamp_time
+
+        # Calculate the time difference in hours
+        time_diff_hours = time_diff.total_seconds() / 3600
+
+        # Check if the time difference is less than 18 hours
+        if time_diff_hours <= 18:
+            return True
+        else:
+            return False
+
+
+    def lookup_to_markdown(results: List[Dict], title: str) -> str:
+        headers = results[0] if results else {}
+        headers = list(headers.keys())
+        markdown = tableToMarkdown(title, results, headers=headers, removeNull=True)
+        return markdown
+
+    def event_for_lookup(event: Dict) -> Dict:
+        event_dict = {
+            "Title": event.get("title"),
+            "Text": event.get("text"),
+            "Date Happened": datetime.fromtimestamp(
+                event.get("date_happened", 0)
+            ).strftime("%Y-%m-%d %H:%M:%S"),
+            "Id": event.get("id"),
+            "Priority": event.get("priority"),
+            "Source": event.get("source"),
+            "Tags": ",".join(tag for tag in event.get("tags", [])),
+            "Is Aggregate": event.get('is_aggregate'),
+            'Host': event.get('host'),
+            'Device Name': event.get('device_name'),
+            'Alert Type': event.get('alert_type'),
+        }
+        return  event_dict
+
+
+    def pagination(limit: Optional[int], page: Optional[int], page_size: Optional[int]):
+        """
+        Define pagination.
+        Args:
+            page: The page number.
+            page_size: The number of requested results per page.
+        Returns:
+            limit (int): Records per page.
+            offset (int): The number of records to be skipped.
+        """
+        if page is None:
+            page = DEFAULT_OFFSET
+        elif page <= 0:
+            raise DemistoException(PAGE_NUMBER_ERROR_MSG)
+        else:
+            page = page - 1
+
+        if page_size is None:
+            page_size = DEFAULT_PAGE_SIZE
+        elif page_size <= 0:
+            raise DemistoException(PAGE_SIZE_ERROR_MSG)
+
+        if limit:
+            limit = limit
+        elif page_size:
+            limit = page_size
+        else:
+            limit = DEFAULT_PAGE_SIZE
+        offset = page * page_size
+
+        return limit, offset
+
+
+    # TODO: ADD HERE ANY HELPER FUNCTION YOU MIGHT NEED (if any)
+
+    """ COMMAND FUNCTIONS """
+
+
+    def test_module(configuration) -> str:
+        """Tests API connectivity and authentication'
+
+        Returning 'ok' indicates that the integration works like it is supposed to.
+        Connection to the service is successful.
+        Raises exceptions if something goes wrong.
+
+        :type client: ``Client``
+        :param Client: client to use
+
+        :return: 'ok' if test passed, anything else will fail the test.
+        :rtype: ``str``
+        """
+
+        message: str = ""
+        try:
+            with ApiClient(configuration) as api_client:
+                api_instance = AuthenticationApi(api_client)
+                api_instance.validate()
+                message = "ok"
+        except Exception as e:
+            message = "Authorization Error: make sure API Key, Application Key, Site URL is correctly set"
+        return message
+
+
+
+
+    def create_event_command(configuration, args):
+        priority = args.get('priority')
+        alert_type = args.get("alert_type")
+        if priority and priority not in EventPriority.allowed_values:
+            return DemistoException("Priority not in allowed values.")
+        if alert_type and alert_type not in EventAlertType.allowed_values:
+            return DemistoException("Alert type not in allowed values.")
+        date_happened = args.get("date_happened")
+        if date_happened:
+            date_happened_timestamp = date_string_to_timestamp(date_happened)
+            if not is_within_18_hours(date_happened_timestamp):
+                readable_output = "The time of the event shall not be older than 18 hours!\n"
+                return CommandResults(readable_output=readable_output)
+
+        data = {
+            "title": args.get("title"),
+            "text": args.get("text"),
+            "tags": args.get("tags").split(",") if args.get("tags") else None,
+            "alert_type": EventAlertType(args.get("alert_type")),
+            "priority": EventPriority(args.get('priority')),
+            "aggregation_key": args.get("aggregation_key"),
+            "related_event_id": int(args.get("related_event_id")) if args.get("related_event_id") else None,
+            "host": args.get("host_name"),
+            "device_name": args.get("device_name"),
+            "date_happened": date_string_to_timestamp(date_happened) if date_happened else None,
+            "source_type_name": args.get("source_type_name"),
+        }
+        data = {key: value for key, value in data.items() if value is not None}
+        body = EventCreateRequest(**data)
+
+        with ApiClient(configuration) as api_client:
+            api_instance = EventsApi(api_client)
+            response = api_instance.create_event(body=body)
+            if response and response.status == "ok":
+                readable_output = "Event created successfully!"
+            else:
+                readable_output = "Something went wrong!"
+
+            return CommandResults(readable_output=readable_output)
+
+
+    def get_events_command(configuration, args):
+        with ApiClient(configuration) as api_client:
+            api_instance = EventsApi(api_client)
+
+            if args.get("event_id"):
+                response = api_instance.get_event(
+                    event_id=arg_to_number(args.get("event_id"), arg_name="event_id"),
+                )
+                data = response.get("event", {})
+                if data:
+                    data = data.to_dict()
+                    event_dict = event_for_lookup(data)
+                    results = [event_dict]
+                    title = "Event Details"
+                    readable_output = lookup_to_markdown(results, title)
+                else:
+                    readable_output = "No event to present.\n"
+
+            else:
+                start_time = date_string_to_timestamp(args.get("start_date", (datetime.now() + timedelta(days=-7)).date().strftime(DATE_FORMAT)))
+                end_time = date_string_to_timestamp(args.get("end_date", datetime.now().strftime(DATE_FORMAT)))
+                page = arg_to_number(args.get("page"), arg_name="page")
+                page_size = arg_to_number(args.get("page_size"), arg_name="page_size")
+                limit = arg_to_number(args.get("limit"), arg_name="limit")
+                limit, offset = pagination(limit, page, page_size)
+                datadog_page = floor(offset / 1000) if offset / 1000 > 1 else None
+                body_dict = {
+                    "start": start_time,
+                    "end": end_time,
+                    "priority": args.get("priority"),
+                    "sources": args.get("sources"),
+                    "tags": args.get("tags"),
+                    "unaggregated": str_to_bool(args.get("unaggregated")) if args.get("unaggregated") else None,
+                    "exclude_aggregate": str_to_bool(args.get("exclude_aggregate")) if args.get("exclude_aggregate") else None,
+                    "page": datadog_page,
+                }
+
+                body = {key: value for key, value in body_dict.items() if value is not None}
+                response = api_instance.list_events(**body)
+                results = response.get("events", [])
+                resp = results[offset:offset + limit]
+                data = [event.to_dict() for event in resp]
+                if data:
+                    events_list = []
+                    for event in data:
+                        event_dict = event_for_lookup(event)
+                        events_list.append(event_dict)
+                    title = get_command_title_string("Events", page, page_size)
+                    readable_output = lookup_to_markdown(events_list, title)
+                else:
+                    readable_output = "No Events to present.\n"
+            return CommandResults(
+                readable_output=readable_output,
+                outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Event",
+                outputs_key_field="id",
+                outputs=data,
+            )
+
+
+
+
+    """ MAIN FUNCTION """
+
+
+    def main() -> None:
+        command: str = demisto.command()
+        params: Dict[str, Any] = demisto.params()
+        args: Dict[str, Any] = demisto.args()
+
+        demisto.debug(f"Command being called is {command}")
+        try:
+            configuration = Configuration()
+            configuration.api_key["apiKeyAuth"] = params.get('api_key') #"9a2e2f79385b2b996b45df7930bd8c6a"
+            configuration.api_key[
+                "appKeyAuth"] = params.get('app_key') #"2e28f1d651459c5bbb5bb26826cbbbc2a1d3de64"
+            # configuration.server_variables["site"] = params.get('site')
+
+            commands = {
+                "datadog-event-create":
+                    create_event_command,
+                "datadog-event-list":
+                    get_events_command,
+            }
+            if command == "test-module":
+                return_results(test_module(configuration))
+            elif command in commands:
+                return_results(commands[command](configuration, args))
+            else:
+                raise NotImplementedError
+            # Log exceptions
+        except Exception as e:
+            return_error(
+                f'Failed to execute {command} command. Error: {str(e)}')
+
+
+    """ ENTRY POINT """
+
+    if __name__ in ("__main__", "__builtin__", "builtins"):
+        main()
+  subtype: python3
+  type: python
+image: data:image/png;base64,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
+tests:
+- No tests (auto formatted)
+fromversion: 5.5.0
