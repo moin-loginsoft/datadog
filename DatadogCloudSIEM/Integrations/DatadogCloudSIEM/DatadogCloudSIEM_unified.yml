@@ -500,7 +500,7 @@ script:
 
     import urllib3
     from typing import Dict, Any
-
+    import dateparser
     from os import environ
     from datadog_api_client import ApiClient, Configuration
     from datadog_api_client.v1.api.authentication_api import AuthenticationApi
@@ -525,15 +525,57 @@ script:
     PAGE_SIZE_ERROR_MSG = "Invalid Input Error: page size should be greater than zero."
     DEFAULT_FROM_DATE = "-7days"
     DEFAULT_TO_DATE = "now"
-    INTEGRATION_CONTEXT_NAME = 'Datadog'
+    INTEGRATION_CONTEXT_NAME = "Datadog"
 
     """ HELPER FUNCTIONS """
 
 
+    # def get_demisto_datetme_format(date_string):
+    #     if date_string:
+    #         date_object = None
+    #         # try to parse date string
+    #         try:
+    #             date_object = parser.parse(date_string)
+    #         except Exception:
+    #             pass
+    #         # try to parse relative time
+    #         if date_object is None and date_string.strip().endswith("ago"):
+    #             date_object = parse_relative_time(date_string)
+
+    #         if date_object:
+    #             return date_object.astimezone().isoformat('T')
+    #         else:
+    #             return None
+
+
+    # def parse_relative_time(datetime_str):
+    #     if datetime_str:
+    #         datetime_str = datetime_str.lower()
+    #         try:
+    #             res = re.search("([0-9]+) (minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years) ago",
+    #                             datetime_str)
+    #             if res:
+    #                 number = int(res.group(1))
+    #                 unit = res.group(2)
+    #                 if unit in ['minute', 'hour', 'day', 'week', 'month', 'year']:
+    #                     unit += "s"
+    #                 if unit == 'years':
+    #                     unit = 'days'
+    #                     number *= 365
+    #                 elif unit == 'months':
+    #                     number *= 43800
+    #                     unit = 'minutes'
+
+    #                 kargs = {}
+    #                 kargs[unit] = int(number)
+    #                 result = datetime.now() - timedelta(**kargs)
+    #                 return result
+    #         except Exception:
+    #             return None
+
+
     def date_string_to_timestamp(date: str) -> int:
-        return int(
-            datetime.strptime(date, DATE_FORMAT).timestamp()
-        )
+        return int(datetime.strptime(date, DATE_FORMAT).timestamp())
 
 
     def str_to_bool(s):
@@ -542,16 +584,17 @@ script:
         'True', 'true', 'Yes', 'yes', and '1' are considered True.
         'False', 'false', 'No', 'no', and '0' are considered False.
         """
-        if s.lower() in ('true', 'yes', '1'):
+        if s.lower() in ("true", "yes", "1"):
             return True
-        elif s.lower() in ('false', 'no', '0'):
+        elif s.lower() in ("false", "no", "0"):
             return False
         else:
             raise ValueError("Invalid string value for boolean conversion: " + s)
 
 
-    def get_command_title_string(sub_context: str, page: Optional[int],
-                                 page_size: Optional[int]) -> str:
+    def get_command_title_string(
+        sub_context: str, page: Optional[int], page_size: Optional[int]
+    ) -> str:
         """
         Define command title
         Args:
@@ -562,8 +605,10 @@ script:
             Returns the title for the readable output
         """
         if page and page_size and (page > 0 and page_size > 0):
-            return f'{sub_context} List\nCurrent page size: {page_size}\n' \
-                   f'Showing page {page} out of others that may exist'
+            return (
+                f"{sub_context} List\nCurrent page size: {page_size}\n"
+                f"Showing page {page} out of others that may exist"
+            )
 
         return f"{sub_context} List"
 
@@ -594,23 +639,24 @@ script:
         markdown = tableToMarkdown(title, results, headers=headers, removeNull=True)
         return markdown
 
+
     def event_for_lookup(event: Dict) -> Dict:
         event_dict = {
             "Title": event.get("title"),
             "Text": event.get("text"),
-            "Date Happened": datetime.fromtimestamp(
-                event.get("date_happened", 0)
-            ).strftime("%Y-%m-%d %H:%M:%S"),
+            "Date Happened": datetime.fromtimestamp(event.get("date_happened", 0)).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
             "Id": event.get("id"),
             "Priority": event.get("priority"),
             "Source": event.get("source"),
             "Tags": ",".join(tag for tag in event.get("tags", [])),
-            "Is Aggregate": event.get('is_aggregate'),
-            'Host': event.get('host'),
-            'Device Name': event.get('device_name'),
-            'Alert Type': event.get('alert_type'),
+            "Is Aggregate": event.get("is_aggregate"),
+            "Host": event.get("host"),
+            "Device Name": event.get("device_name"),
+            "Alert Type": event.get("alert_type"),
         }
-        return  event_dict
+        return event_dict
 
 
     def pagination(limit: Optional[int], page: Optional[int], page_size: Optional[int]):
@@ -676,10 +722,8 @@ script:
         return message
 
 
-
-
     def create_event_command(configuration, args):
-        priority = args.get('priority')
+        priority = args.get("priority")
         alert_type = args.get("alert_type")
         if priority and priority not in EventPriority.allowed_values:
             return DemistoException("Priority not in allowed values.")
@@ -687,9 +731,14 @@ script:
             return DemistoException("Alert type not in allowed values.")
         date_happened = args.get("date_happened")
         if date_happened:
-            date_happened_timestamp = date_string_to_timestamp(date_happened)
+            # date_happened_timestamp = date_string_to_timestamp(date_happened)
+            date_happened_timestamp = int(
+                dateparser.parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
+            )
             if not is_within_18_hours(date_happened_timestamp):
-                readable_output = "The time of the event shall not be older than 18 hours!\n"
+                readable_output = (
+                    "The time of the event shall not be older than 18 hours!\n"
+                )
                 return CommandResults(readable_output=readable_output)
 
         data = {
@@ -697,12 +746,19 @@ script:
             "text": args.get("text"),
             "tags": args.get("tags").split(",") if args.get("tags") else None,
             "alert_type": EventAlertType(args.get("alert_type")),
-            "priority": EventPriority(args.get('priority')),
+            "priority": EventPriority(args.get("priority")),
             "aggregation_key": args.get("aggregation_key"),
-            "related_event_id": int(args.get("related_event_id")) if args.get("related_event_id") else None,
+            "related_event_id": int(args.get("related_event_id"))
+            if args.get("related_event_id")
+            else None,
             "host": args.get("host_name"),
             "device_name": args.get("device_name"),
-            "date_happened": date_string_to_timestamp(date_happened) if date_happened else None,
+            # "date_happened": date_string_to_timestamp(date_happened) if date_happened else None,
+            "date_happened": int(
+                dateparser.parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
+            )
+            if date_happened
+            else None,
             "source_type_name": args.get("source_type_name"),
         }
         data = {key: value for key, value in data.items() if value is not None}
@@ -711,6 +767,7 @@ script:
         with ApiClient(configuration) as api_client:
             api_instance = EventsApi(api_client)
             response = api_instance.create_event(body=body)
+            print(response)
             if response and response.status == "ok":
                 readable_output = "Event created successfully!"
             else:
@@ -738,8 +795,15 @@ script:
                     readable_output = "No event to present.\n"
 
             else:
-                start_time = date_string_to_timestamp(args.get("start_date", (datetime.now() + timedelta(days=-7)).date().strftime(DATE_FORMAT)))
-                end_time = date_string_to_timestamp(args.get("end_date", datetime.now().strftime(DATE_FORMAT)))
+                start_time = int(
+                    dateparser.parse(
+                        args.get("start_date", DEFAULT_FROM_DATE),
+                        settings={"TIMEZONE": "UTC"},
+                    ).timestamp()
+                )
+                end_time = date_string_to_timestamp(
+                    args.get("end_date", datetime.now().strftime(DATE_FORMAT))
+                )
                 page = arg_to_number(args.get("page"), arg_name="page")
                 page_size = arg_to_number(args.get("page_size"), arg_name="page_size")
                 limit = arg_to_number(args.get("limit"), arg_name="limit")
@@ -751,15 +815,19 @@ script:
                     "priority": args.get("priority"),
                     "sources": args.get("sources"),
                     "tags": args.get("tags"),
-                    "unaggregated": str_to_bool(args.get("unaggregated")) if args.get("unaggregated") else None,
-                    "exclude_aggregate": str_to_bool(args.get("exclude_aggregate")) if args.get("exclude_aggregate") else None,
+                    "unaggregated": str_to_bool(args.get("unaggregated"))
+                    if args.get("unaggregated")
+                    else None,
+                    "exclude_aggregate": str_to_bool(args.get("exclude_aggregate"))
+                    if args.get("exclude_aggregate")
+                    else None,
                     "page": datadog_page,
                 }
 
                 body = {key: value for key, value in body_dict.items() if value is not None}
                 response = api_instance.list_events(**body)
                 results = response.get("events", [])
-                resp = results[offset:offset + limit]
+                resp = results[offset : offset + limit]
                 data = [event.to_dict() for event in resp]
                 if data:
                     events_list = []
@@ -778,8 +846,6 @@ script:
             )
 
 
-
-
     """ MAIN FUNCTION """
 
 
@@ -791,16 +857,17 @@ script:
         demisto.debug(f"Command being called is {command}")
         try:
             configuration = Configuration()
-            configuration.api_key["apiKeyAuth"] = params.get('api_key') #"9a2e2f79385b2b996b45df7930bd8c6a"
-            configuration.api_key[
-                "appKeyAuth"] = params.get('app_key') #"2e28f1d651459c5bbb5bb26826cbbbc2a1d3de64"
+            configuration.api_key["apiKeyAuth"] = params.get(
+                "api_key"
+            )  # "9a2e2f79385b2b996b45df7930bd8c6a"
+            configuration.api_key["appKeyAuth"] = params.get(
+                "app_key"
+            )  # "2e28f1d651459c5bbb5bb26826cbbbc2a1d3de64"
             # configuration.server_variables["site"] = params.get('site')
 
             commands = {
-                "datadog-event-create":
-                    create_event_command,
-                "datadog-event-list":
-                    get_events_command,
+                "datadog-event-create": create_event_command,
+                "datadog-event-list": get_events_command,
             }
             if command == "test-module":
                 return_results(test_module(configuration))
@@ -810,8 +877,7 @@ script:
                 raise NotImplementedError
             # Log exceptions
         except Exception as e:
-            return_error(
-                f'Failed to execute {command} command. Error: {str(e)}')
+            return_error(f"Failed to execute {command} command. Error: {str(e)}")
 
 
     """ ENTRY POINT """
