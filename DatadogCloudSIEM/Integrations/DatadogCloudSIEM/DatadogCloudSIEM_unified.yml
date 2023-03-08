@@ -17,7 +17,7 @@ configuration:
   display: Application Key
   hidden: false
   name: app_key
-  required: false
+  required: true
   type: 0
 - display: Trust any certificate (not secure)
   name: insecure
@@ -44,47 +44,6 @@ display: DatadogCloudSIEM
 name: DatadogCloudSIEM
 script:
   commands:
-  - arguments:
-    - default: false
-      description: '[Enter a description of the argument, including any important
-        information users need to know, for example, default values.]'
-      isArray: false
-      name: dummy
-      required: true
-      secret: false
-    deprecated: false
-    description: '[Enter a description of the command, including any important information
-      users need to know, for example required permissions.]'
-    execution: false
-    name: baseintegration-dummy
-    outputs:
-    - contextPath: BaseIntegration.Output
-      description: '[Enter a description of the data returned in this output.]'
-      type: String
-  - arguments:
-    - default: false
-      description: The title of the incident ot create at datadog
-      isArray: false
-      name: title
-      required: true
-      secret: false
-    - auto: PREDEFINED
-      default: false
-      defaultValue: active
-      description: The status of the incident at datadog
-      isArray: false
-      name: status
-      predefined:
-      - active
-      - ' stable'
-      - ' resolved'
-      required: true
-      secret: false
-    deprecated: false
-    description: creates an incident in datadog endpoint and returns created incident
-      response
-    execution: false
-    name: datadog-incident-create
   - arguments:
     - default: false
       description: "The body of the event.\n\nLimited to 4000 characters.\n \nThe\
@@ -226,11 +185,15 @@ script:
       name: tags
       required: false
       secret: false
-    - default: false
+    - auto: PREDEFINED
+      default: false
       description: Set unaggregated to true to return all events within the specified
         [start,end] timeframe.
       isArray: false
       name: unaggregated
+      predefined:
+      - 'True'
+      - 'False'
       required: false
       secret: false
     - auto: PREDEFINED
@@ -305,173 +268,6 @@ script:
       description: Host name to associate with the event. Any tags associated with
         the host are also applied to this event.
       type: String
-  - arguments:
-    - default: false
-      description: The id of an incident
-      isArray: false
-      name: incident_id
-      required: false
-      secret: false
-    - default: false
-      description: Size for a given page.
-      isArray: false
-      name: page_size
-      required: false
-      secret: false
-    - default: false
-      description: 'Specific offset to use as the beginning of the returned page. '
-      isArray: false
-      name: page
-      required: false
-      secret: false
-    - default: true
-      defaultValue: '50'
-      description: No of incidents to be fetched
-      isArray: false
-      name: limit
-      required: false
-      secret: false
-    - default: false
-      description: The status of the incident.
-      isArray: false
-      name: state
-      required: false
-      secret: false
-    - default: false
-      description: The severity of the incident.
-      isArray: false
-      name: severity
-      required: false
-      secret: false
-    - auto: PREDEFINED
-      default: false
-      description: A flag indicating whether the incident caused customer impact.
-      isArray: false
-      name: customer_impacted
-      predefined:
-      - 'True'
-      - ' False'
-      required: false
-      secret: false
-    - auto: PREDEFINED
-      default: false
-      description: 'Specify how the incident was detected with these default options:
-        customer, employee, monitor, other, or unknown.'
-      isArray: false
-      name: detection_method
-      predefined:
-      - customer
-      - ' employee'
-      - ' monitor'
-      - ' other'
-      - ' unknown'
-      required: false
-      secret: false
-    - auto: PREDEFINED
-      default: false
-      description: Specifies the order of returned incidents.
-      isArray: false
-      name: sort
-      predefined:
-      - asc
-      - desc
-      required: false
-      secret: false
-    deprecated: false
-    description: Get an incident / Fetch incidents.
-    execution: false
-    name: datadog-incident-list
-  - arguments:
-    - default: false
-      isArray: false
-      name: page
-      required: false
-      secret: false
-    - default: false
-      description: 'No of tags to be fetched '
-      isArray: false
-      name: page_size
-      required: false
-      secret: false
-    - default: true
-      defaultValue: '50'
-      description: 'Default tags to be fetched '
-      isArray: false
-      name: limit
-      required: false
-      secret: false
-    - default: false
-      description: 'When specified, filters host list to those tags with the specified
-        source. '
-      isArray: false
-      name: source
-      required: false
-      secret: false
-    deprecated: false
-    description: Return a mapping of tags to hosts for your whole infrastructure.
-    execution: false
-    name: datadog-tag-list
-  - arguments:
-    - default: false
-      description: The host name.
-      isArray: false
-      name: host_name
-      required: true
-      secret: false
-    - default: false
-      description: A list of tags to apply to the host.
-      isArray: false
-      name: tags
-      required: true
-      secret: false
-    deprecated: false
-    description: This endpoint allows you to add new tags to a host, optionally specifying
-      where these tags come from.
-    execution: false
-    name: datadog-host-tag-create
-  - arguments:
-    - default: false
-      description: The host name.
-      isArray: false
-      name: host_name
-      required: true
-      secret: false
-    deprecated: false
-    description: Return the list of tags that apply to a given host.
-    execution: false
-    name: datadog-host-tag-get
-  - arguments:
-    - default: false
-      description: The host name.
-      isArray: false
-      name: host_name
-      required: true
-      secret: false
-    - default: false
-      description: "A list of tags to apply to the host  \n \nPrevious tags will be\
-        \ replaced by new tags. \n \nComma seperated values."
-      isArray: false
-      name: tags
-      required: false
-      secret: false
-    deprecated: false
-    description: This endpoint allows you to replace all tags in an integration source
-      with those supplied in the request.
-    execution: false
-    name: datadog-host-tag-update
-  - arguments:
-    - default: false
-      description: Host name to remove associated tags.
-      isArray: false
-      name: host_name
-      required: false
-      secret: false
-    deprecated: false
-    description: This endpoint allows you to remove all user-assigned tags for a single
-      host.
-    execution: false
-    name: datadog-host-tag-delete
-  dockerimage: devtesting/datadog-api-client:1.0.0.1676052087
   feed: false
   isfetch: false
   longRunning: false
@@ -498,10 +294,9 @@ script:
       # noqa # pylint: disable=unused-wildcard-import
       # noqa
 
-    import urllib3
+    from urllib3 import disable_warnings
     from typing import Dict, Any
-    import dateparser
-    from os import environ
+    from dateparser import parse
     from datadog_api_client import ApiClient, Configuration
     from datadog_api_client.v1.api.authentication_api import AuthenticationApi
     from datadog_api_client.v1.api.events_api import EventsApi
@@ -509,12 +304,10 @@ script:
     from datadog_api_client.v1.model.event_priority import EventPriority
     from datadog_api_client.v1.model.event_alert_type import EventAlertType
     from datetime import datetime
-    from dateutil.relativedelta import relativedelta
     from math import floor
 
-
     # Disable insecure warnings
-    urllib3.disable_warnings()
+    disable_warnings()
 
     """ CONSTANTS """
 
@@ -527,51 +320,7 @@ script:
     DEFAULT_TO_DATE = "now"
     INTEGRATION_CONTEXT_NAME = "Datadog"
 
-    """ HELPER FUNCTIONS """
-
-
-    # def get_demisto_datetme_format(date_string):
-    #     if date_string:
-    #         date_object = None
-    #         # try to parse date string
-    #         try:
-    #             date_object = parser.parse(date_string)
-    #         except Exception:
-    #             pass
-    #         # try to parse relative time
-    #         if date_object is None and date_string.strip().endswith("ago"):
-    #             date_object = parse_relative_time(date_string)
-
-    #         if date_object:
-    #             return date_object.astimezone().isoformat('T')
-    #         else:
-    #             return None
-
-
-    # def parse_relative_time(datetime_str):
-    #     if datetime_str:
-    #         datetime_str = datetime_str.lower()
-    #         try:
-    #             res = re.search("([0-9]+) (minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years) ago",
-    #                             datetime_str)
-    #             if res:
-    #                 number = int(res.group(1))
-    #                 unit = res.group(2)
-    #                 if unit in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-    #                     unit += "s"
-    #                 if unit == 'years':
-    #                     unit = 'days'
-    #                     number *= 365
-    #                 elif unit == 'months':
-    #                     number *= 43800
-    #                     unit = 'minutes'
-
-    #                 kargs = {}
-    #                 kargs[unit] = int(number)
-    #                 result = datetime.now() - timedelta(**kargs)
-    #                 return result
-    #         except Exception:
-    #             return None
+    # """ HELPER FUNCTIONS """
 
 
     def date_string_to_timestamp(date: str) -> int:
@@ -613,7 +362,7 @@ script:
         return f"{sub_context} List"
 
 
-    def is_within_18_hours(timestamp):
+    def is_within_18_hours(timestamp: int) -> bool:
         # Calculate the current time
         current_time = datetime.now()
 
@@ -627,21 +376,19 @@ script:
         time_diff_hours = time_diff.total_seconds() / 3600
 
         # Check if the time difference is less than 18 hours
-        if time_diff_hours <= 18:
-            return True
-        else:
-            return False
+        return True if time_diff_hours <= 18 else False
 
 
     def lookup_to_markdown(results: List[Dict], title: str) -> str:
         headers = results[0] if results else {}
-        headers = list(headers.keys())
-        markdown = tableToMarkdown(title, results, headers=headers, removeNull=True)
+        markdown = tableToMarkdown(
+            title, results, headers=list(headers.keys()), removeNull=True
+        )
         return markdown
 
 
     def event_for_lookup(event: Dict) -> Dict:
-        event_dict = {
+        return {
             "Title": event.get("title"),
             "Text": event.get("text"),
             "Date Happened": datetime.fromtimestamp(event.get("date_happened", 0)).strftime(
@@ -656,7 +403,6 @@ script:
             "Device Name": event.get("device_name"),
             "Alert Type": event.get("alert_type"),
         }
-        return event_dict
 
 
     def pagination(limit: Optional[int], page: Optional[int], page_size: Optional[int]):
@@ -669,30 +415,19 @@ script:
             limit (int): Records per page.
             offset (int): The number of records to be skipped.
         """
-        if page is None:
-            page = DEFAULT_OFFSET
-        elif page <= 0:
+        if page is not None and page <= 0:
             raise DemistoException(PAGE_NUMBER_ERROR_MSG)
-        else:
-            page = page - 1
-
-        if page_size is None:
-            page_size = DEFAULT_PAGE_SIZE
-        elif page_size <= 0:
+        if page_size is not None and page_size <= 0:
             raise DemistoException(PAGE_SIZE_ERROR_MSG)
 
-        if limit:
-            limit = limit
-        elif page_size:
-            limit = page_size
-        else:
-            limit = DEFAULT_PAGE_SIZE
+        page = DEFAULT_OFFSET if page is None else page - 1
+        page_size = DEFAULT_PAGE_SIZE if page_size is None else page_size
+
+        limit = limit if limit else (page_size if page_size else DEFAULT_PAGE_SIZE)
         offset = page * page_size
 
         return limit, offset
 
-
-    # TODO: ADD HERE ANY HELPER FUNCTION YOU MIGHT NEED (if any)
 
     """ COMMAND FUNCTIONS """
 
@@ -704,25 +439,19 @@ script:
         Connection to the service is successful.
         Raises exceptions if something goes wrong.
 
-        :type client: ``Client``
-        :param Client: client to use
-
         :return: 'ok' if test passed, anything else will fail the test.
         :rtype: ``str``
         """
-
-        message: str = ""
         try:
             with ApiClient(configuration) as api_client:
                 api_instance = AuthenticationApi(api_client)
                 api_instance.validate()
-                message = "ok"
+                return "ok"
         except Exception as e:
-            message = "Authorization Error: make sure API Key, Application Key, Site URL is correctly set"
-        return message
+            return "Authorization Error: make sure API Key, Application Key, Site URL is correctly set"
 
 
-    def create_event_command(configuration, args):
+    def create_event_command(configuration: Configuration, args: Dict[str, Any]):
         priority = args.get("priority")
         alert_type = args.get("alert_type")
         if priority and priority not in EventPriority.allowed_values:
@@ -731,15 +460,13 @@ script:
             return DemistoException("Alert type not in allowed values.")
         date_happened = args.get("date_happened")
         if date_happened:
-            # date_happened_timestamp = date_string_to_timestamp(date_happened)
             date_happened_timestamp = int(
-                dateparser.parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
+                parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
             )
             if not is_within_18_hours(date_happened_timestamp):
-                readable_output = (
-                    "The time of the event shall not be older than 18 hours!\n"
+                return CommandResults(
+                    readable_output="The time of the event shall not be older than 18 hours!\n"
                 )
-                return CommandResults(readable_output=readable_output)
 
         data = {
             "title": args.get("title"),
@@ -753,9 +480,8 @@ script:
             else None,
             "host": args.get("host_name"),
             "device_name": args.get("device_name"),
-            # "date_happened": date_string_to_timestamp(date_happened) if date_happened else None,
             "date_happened": int(
-                dateparser.parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
+                parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
             )
             if date_happened
             else None,
@@ -767,16 +493,14 @@ script:
         with ApiClient(configuration) as api_client:
             api_instance = EventsApi(api_client)
             response = api_instance.create_event(body=body)
-            print(response)
-            if response and response.status == "ok":
-                readable_output = "Event created successfully!"
-            else:
-                readable_output = "Something went wrong!"
-
-            return CommandResults(readable_output=readable_output)
+            return CommandResults(
+                readable_output="Event created successfully!"
+                if response and response.status == "ok"
+                else "Something went wrong!"
+            )
 
 
-    def get_events_command(configuration, args):
+    def get_events_command(configuration: Configuration, args: Dict[str, Any]):
         with ApiClient(configuration) as api_client:
             api_instance = EventsApi(api_client)
 
@@ -787,8 +511,7 @@ script:
                 data = response.get("event", {})
                 if data:
                     data = data.to_dict()
-                    event_dict = event_for_lookup(data)
-                    results = [event_dict]
+                    results = [event_for_lookup(data)]
                     title = "Event Details"
                     readable_output = lookup_to_markdown(results, title)
                 else:
@@ -796,7 +519,7 @@ script:
 
             else:
                 start_time = int(
-                    dateparser.parse(
+                    parse(
                         args.get("start_date", DEFAULT_FROM_DATE),
                         settings={"TIMEZONE": "UTC"},
                     ).timestamp()
@@ -809,6 +532,11 @@ script:
                 limit = arg_to_number(args.get("limit"), arg_name="limit")
                 limit, offset = pagination(limit, page, page_size)
                 datadog_page = floor(offset / 1000) if offset / 1000 > 1 else None
+                # print(
+                #     type(argToBoolean(args.get("exclude_aggregate"))),
+                #     argToBoolean(args.get("exclude_aggregate")),
+                # )
+                # return None
                 body_dict = {
                     "start": start_time,
                     "end": end_time,
@@ -830,10 +558,7 @@ script:
                 resp = results[offset : offset + limit]
                 data = [event.to_dict() for event in resp]
                 if data:
-                    events_list = []
-                    for event in data:
-                        event_dict = event_for_lookup(event)
-                        events_list.append(event_dict)
+                    events_list = [event_for_lookup(event) for event in data]
                     title = get_command_title_string("Events", page, page_size)
                     readable_output = lookup_to_markdown(events_list, title)
                 else:
@@ -857,13 +582,9 @@ script:
         demisto.debug(f"Command being called is {command}")
         try:
             configuration = Configuration()
-            configuration.api_key["apiKeyAuth"] = params.get(
-                "api_key"
-            )  # "9a2e2f79385b2b996b45df7930bd8c6a"
-            configuration.api_key["appKeyAuth"] = params.get(
-                "app_key"
-            )  # "2e28f1d651459c5bbb5bb26826cbbbc2a1d3de64"
-            # configuration.server_variables["site"] = params.get('site')
+            configuration.api_key["apiKeyAuth"] = params.get("api_key")
+            configuration.api_key["appKeyAuth"] = params.get("app_key")
+            configuration.server_variables["site"] = params.get("site")
 
             commands = {
                 "datadog-event-create": create_event_command,
@@ -886,7 +607,7 @@ script:
         main()
   subtype: python3
   type: python
-image: data:image/png;base64,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
+image: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAAyCAYAAACXpx/YAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDkuMC1jMDAxIDc5LjE0ZWNiNDJmMmMsIDIwMjMvMDEvMTMtMTI6MjU6NDQgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNC4yIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpDNEVCNUExOUJEODIxMUVEQTA4MDg5RTI2NEU5MUYzNCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpDNEVCNUExQUJEODIxMUVEQTA4MDg5RTI2NEU5MUYzNCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkM0RUI1QTE3QkQ4MjExRURBMDgwODlFMjY0RTkxRjM0IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkM0RUI1QTE4QkQ4MjExRURBMDgwODlFMjY0RTkxRjM0Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+zPa9GQAAB9tJREFUeNrs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
 tests:
 - No tests (auto formatted)
 fromversion: 5.5.0

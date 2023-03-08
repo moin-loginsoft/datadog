@@ -17,7 +17,7 @@ configuration:
   display: Application Key
   hidden: false
   name: app_key
-  required: false
+  required: true
   type: 0
 - display: Trust any certificate (not secure)
   name: insecure
@@ -176,11 +176,15 @@ script:
       name: tags
       required: false
       secret: false
-    - default: false
+    - auto: PREDEFINED
+      default: false
       description: Set unaggregated to true to return all events within the specified
         [start,end] timeframe.
       isArray: false
       name: unaggregated
+      predefined:
+      - 'True'
+      - 'False'
       required: false
       secret: false
     - auto: PREDEFINED
@@ -255,8 +259,6 @@ script:
       description: Host name to associate with the event. Any tags associated with
         the host are also applied to this event.
       type: String
-
-#  dockerimage: devtesting/datadog-api-client:1.0.0.1676052087
   feed: false
   isfetch: false
   longRunning: false

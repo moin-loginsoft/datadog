@@ -18,9 +18,9 @@ import demistomock as demisto
 from CommonServerPython import *  # noqa # pylint: disable=unused-wildcard-import
 from CommonServerUserPython import *  # noqa
 
-import urllib3
+from urllib3 import disable_warnings
 from typing import Dict, Any
-import dateparser
+from dateparser import parse
 from datadog_api_client import ApiClient, Configuration
 from datadog_api_client.v1.api.authentication_api import AuthenticationApi
 from datadog_api_client.v1.api.events_api import EventsApi
@@ -28,12 +28,10 @@ from datadog_api_client.v1.model.event_create_request import EventCreateRequest
 from datadog_api_client.v1.model.event_priority import EventPriority
 from datadog_api_client.v1.model.event_alert_type import EventAlertType
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from math import floor
 
-
 # Disable insecure warnings
-urllib3.disable_warnings()
+disable_warnings()
 
 """ CONSTANTS """
 
@@ -46,7 +44,7 @@ DEFAULT_FROM_DATE = "-7days"
 DEFAULT_TO_DATE = "now"
 INTEGRATION_CONTEXT_NAME = "Datadog"
 
-""" HELPER FUNCTIONS """
+# """ HELPER FUNCTIONS """
 
 
 def date_string_to_timestamp(date: str) -> int:
@@ -88,7 +86,7 @@ def get_command_title_string(
     return f"{sub_context} List"
 
 
-def is_within_18_hours(timestamp):
+def is_within_18_hours(timestamp: int) -> bool:
     # Calculate the current time
     current_time = datetime.now()
 
@@ -102,21 +100,19 @@ def is_within_18_hours(timestamp):
     time_diff_hours = time_diff.total_seconds() / 3600
 
     # Check if the time difference is less than 18 hours
-    if time_diff_hours <= 18:
-        return True
-    else:
-        return False
+    return True if time_diff_hours <= 18 else False
 
 
 def lookup_to_markdown(results: List[Dict], title: str) -> str:
     headers = results[0] if results else {}
-    headers = list(headers.keys())
-    markdown = tableToMarkdown(title, results, headers=headers, removeNull=True)
+    markdown = tableToMarkdown(
+        title, results, headers=list(headers.keys()), removeNull=True
+    )
     return markdown
 
 
 def event_for_lookup(event: Dict) -> Dict:
-    event_dict = {
+    return {
         "Title": event.get("title"),
         "Text": event.get("text"),
         "Date Happened": datetime.fromtimestamp(event.get("date_happened", 0)).strftime(
@@ -131,7 +127,6 @@ def event_for_lookup(event: Dict) -> Dict:
         "Device Name": event.get("device_name"),
         "Alert Type": event.get("alert_type"),
     }
-    return event_dict
 
 
 def pagination(limit: Optional[int], page: Optional[int], page_size: Optional[int]):
@@ -144,24 +139,15 @@ def pagination(limit: Optional[int], page: Optional[int], page_size: Optional[in
         limit (int): Records per page.
         offset (int): The number of records to be skipped.
     """
-    if page is None:
-        page = DEFAULT_OFFSET
-    elif page <= 0:
+    if page is not None and page <= 0:
         raise DemistoException(PAGE_NUMBER_ERROR_MSG)
-    else:
-        page = page - 1
-
-    if page_size is None:
-        page_size = DEFAULT_PAGE_SIZE
-    elif page_size <= 0:
+    if page_size is not None and page_size <= 0:
         raise DemistoException(PAGE_SIZE_ERROR_MSG)
 
-    if limit:
-        limit = limit
-    elif page_size:
-        limit = page_size
-    else:
-        limit = DEFAULT_PAGE_SIZE
+    page = DEFAULT_OFFSET if page is None else page - 1
+    page_size = DEFAULT_PAGE_SIZE if page_size is None else page_size
+
+    limit = limit if limit else (page_size if page_size else DEFAULT_PAGE_SIZE)
     offset = page * page_size
 
     return limit, offset
@@ -180,19 +166,16 @@ def test_module(configuration) -> str:
     :return: 'ok' if test passed, anything else will fail the test.
     :rtype: ``str``
     """
-
-    message: str = ""
     try:
         with ApiClient(configuration) as api_client:
             api_instance = AuthenticationApi(api_client)
             api_instance.validate()
-            message = "ok"
+            return "ok"
     except Exception as e:
-        message = "Authorization Error: make sure API Key, Application Key, Site URL is correctly set"
-    return message
+        return "Authorization Error: make sure API Key, Application Key, Site URL is correctly set"
 
 
-def create_event_command(configuration, args):
+def create_event_command(configuration: Configuration, args: Dict[str, Any]):
     priority = args.get("priority")
     alert_type = args.get("alert_type")
     if priority and priority not in EventPriority.allowed_values:
@@ -202,13 +185,12 @@ def create_event_command(configuration, args):
     date_happened = args.get("date_happened")
     if date_happened:
         date_happened_timestamp = int(
-            dateparser.parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
+            parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
         )
         if not is_within_18_hours(date_happened_timestamp):
-            readable_output = (
-                "The time of the event shall not be older than 18 hours!\n"
+            return CommandResults(
+                readable_output="The time of the event shall not be older than 18 hours!\n"
             )
-            return CommandResults(readable_output=readable_output)
 
     data = {
         "title": args.get("title"),
@@ -223,7 +205,7 @@ def create_event_command(configuration, args):
         "host": args.get("host_name"),
         "device_name": args.get("device_name"),
         "date_happened": int(
-            dateparser.parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
+            parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
         )
         if date_happened
         else None,
@@ -235,15 +217,14 @@ def create_event_command(configuration, args):
     with ApiClient(configuration) as api_client:
         api_instance = EventsApi(api_client)
         response = api_instance.create_event(body=body)
-        if response and response.status == "ok":
-            readable_output = "Event created successfully!"
-        else:
-            readable_output = "Something went wrong!"
+        return CommandResults(
+            readable_output="Event created successfully!"
+            if response and response.status == "ok"
+            else "Something went wrong!"
+        )
 
-        return CommandResults(readable_output=readable_output)
 
-
-def get_events_command(configuration, args):
+def get_events_command(configuration: Configuration, args: Dict[str, Any]):
     with ApiClient(configuration) as api_client:
         api_instance = EventsApi(api_client)
 
@@ -254,8 +235,7 @@ def get_events_command(configuration, args):
             data = response.get("event", {})
             if data:
                 data = data.to_dict()
-                event_dict = event_for_lookup(data)
-                results = [event_dict]
+                results = [event_for_lookup(data)]
                 title = "Event Details"
                 readable_output = lookup_to_markdown(results, title)
             else:
@@ -263,7 +243,7 @@ def get_events_command(configuration, args):
 
         else:
             start_time = int(
-                dateparser.parse(
+                parse(
                     args.get("start_date", DEFAULT_FROM_DATE),
                     settings={"TIMEZONE": "UTC"},
                 ).timestamp()
@@ -297,10 +277,7 @@ def get_events_command(configuration, args):
             resp = results[offset : offset + limit]
             data = [event.to_dict() for event in resp]
             if data:
-                events_list = []
-                for event in data:
-                    event_dict = event_for_lookup(event)
-                    events_list.append(event_dict)
+                events_list = [event_for_lookup(event) for event in data]
                 title = get_command_title_string("Events", page, page_size)
                 readable_output = lookup_to_markdown(events_list, title)
             else:
@@ -324,13 +301,9 @@ def main() -> None:
     demisto.debug(f"Command being called is {command}")
     try:
         configuration = Configuration()
-        configuration.api_key["apiKeyAuth"] = params.get(
-            "api_key"
-        )
-        configuration.api_key["appKeyAuth"] = params.get(
-            "app_key"
-        )
-        configuration.server_variables["site"] = params.get('site')
+        configuration.api_key["apiKeyAuth"] = params.get("api_key")
+        configuration.api_key["appKeyAuth"] = params.get("app_key")
+        configuration.server_variables["site"] = params.get("site")
 
         commands = {
             "datadog-event-create": create_event_command,
