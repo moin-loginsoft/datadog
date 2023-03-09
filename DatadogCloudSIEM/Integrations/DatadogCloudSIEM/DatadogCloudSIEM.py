@@ -1,20 +1,3 @@
-"""Base Integration for Cortex XSOAR (aka Demisto)
-
-This is an empty Integration with some basic structure according
-to the code conventions.
-
-MAKE SURE YOU REVIEW/REPLACE ALL THE COMMENTS MARKED AS "TODO"
-
-Developer Documentation: https://xsoar.pan.dev/docs/welcome
-Code Conventions: https://xsoar.pan.dev/docs/integrations/code-conventions
-Linting: https://xsoar.pan.dev/docs/integrations/linting
-
-This is an empty structure file. Check an example at;
-https://github.com/demisto/content/blob/master/Packs/HelloWorld/Integrations/HelloWorld/HelloWorld.py
-
-"""
-
-import demistomock as demisto
 from CommonServerPython import *  # noqa # pylint: disable=unused-wildcard-import
 from CommonServerUserPython import *  # noqa
 
@@ -48,21 +31,24 @@ INTEGRATION_CONTEXT_NAME = "Datadog"
 
 
 def date_string_to_timestamp(date: str) -> int:
-    return int(datetime.strptime(date, DATE_FORMAT).timestamp())
-
-
-def str_to_bool(s):
     """
-    Convert a string representation of a boolean value to a Python boolean value.
-    'True', 'true', 'Yes', 'yes', and '1' are considered True.
-    'False', 'false', 'No', 'no', and '0' are considered False.
+    Convert a date string in the format 'YYYY-MM-DD HH:MM:SS' to a Unix timestamp.
+
+    Args:
+        date (str): A date string in the format 'YYYY-MM-DD HH:MM:SS'.
+
+    Returns:
+        int: The Unix timestamp corresponding to the given date string.
+
+    Raises:
+        ValueError: If the input date string is not in the correct format.
     """
-    if s.lower() in ("true", "yes", "1"):
-        return True
-    elif s.lower() in ("false", "no", "0"):
-        return False
-    else:
-        raise ValueError("Invalid string value for boolean conversion: " + s)
+    try:
+        return int(datetime.strptime(date, DATE_FORMAT).timestamp())
+    except ValueError:
+        raise ValueError(
+            f"Invalid date string format: {date}. Please use format: {DATE_FORMAT}"
+        )
 
 
 def get_command_title_string(
@@ -87,23 +73,34 @@ def get_command_title_string(
 
 
 def is_within_18_hours(timestamp: int) -> bool:
-    # Calculate the current time
+    """
+    Check if a given Unix timestamp is within the last 18 hours.
+
+    Args:
+        timestamp (int): A Unix timestamp.
+
+    Returns:
+        bool: True if the given timestamp is within the last 18 hours, False otherwise.
+    """
     current_time = datetime.now()
-
-    # Convert the given timestamp to datetime object
     timestamp_time = datetime.fromtimestamp(timestamp)
-
-    # Calculate the time difference between current time and timestamp
     time_diff = current_time - timestamp_time
-
-    # Calculate the time difference in hours
     time_diff_hours = time_diff.total_seconds() / 3600
-
-    # Check if the time difference is less than 18 hours
     return True if time_diff_hours <= 18 else False
 
 
 def lookup_to_markdown(results: List[Dict], title: str) -> str:
+    """
+    Convert a list of dictionaries to a Markdown table.
+
+    Args:
+        results (List[Dict]): A list of dictionaries representing the lookup results.
+        title (str): The title of the Markdown table.
+
+    Returns:
+        str: A string containing the Markdown table.
+
+    """
     headers = results[0] if results else {}
     markdown = tableToMarkdown(
         title, results, headers=list(headers.keys()), removeNull=True
@@ -112,6 +109,15 @@ def lookup_to_markdown(results: List[Dict], title: str) -> str:
 
 
 def event_for_lookup(event: Dict) -> Dict:
+    """
+    Returns a dictionary with selected event information.
+
+    Args:
+        event (Dict): A dictionary representing an event.
+
+    Returns:
+        Dict: A dictionary containing the following keys.
+    """
     return {
         "Title": event.get("title"),
         "Text": event.get("text"),
@@ -176,6 +182,18 @@ def test_module(configuration) -> str:
 
 
 def create_event_command(configuration: Configuration, args: Dict[str, Any]):
+    """
+    Creates an event in the Datadog.
+
+    Args:
+        configuration (Configuration): The configuration object for Datadog.
+        args (Dict[str, Any]): A dictionary of arguments for creating the event.
+
+    Returns:
+        CommandResults: A CommandResults object with the following properties:
+        - "readable_output": A human-readable message indicating whether the event was created successfully.
+        - "Event": A dictionary representing the created event.
+    """
     priority = args.get("priority")
     alert_type = args.get("alert_type")
     if priority and priority not in EventPriority.allowed_values:
@@ -220,11 +238,25 @@ def create_event_command(configuration: Configuration, args: Dict[str, Any]):
         return CommandResults(
             readable_output="Event created successfully!"
             if response and response.status == "ok"
-            else "Something went wrong!"
+            else "Something went wrong!",
+            outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Event",
+            outputs_key_field="id",
+            outputs=response.to_dict() if response and response.status == "ok" else {},
         )
 
 
 def get_events_command(configuration: Configuration, args: Dict[str, Any]):
+    """
+    List or get details of events from Datadog.
+
+    Args:
+        configuration (Configuration): The configuration object for Datadog.
+        args (Dict[str, Any]): The dictionary containing the arguments passed to the command.
+
+    Returns:
+        CommandResults: The object containing the command results, including the readable output, outputs prefix,
+            outputs key field, and outputs data.
+    """
     with ApiClient(configuration) as api_client:
         api_instance = EventsApi(api_client)
 
@@ -262,10 +294,10 @@ def get_events_command(configuration: Configuration, args: Dict[str, Any]):
                 "priority": args.get("priority"),
                 "sources": args.get("sources"),
                 "tags": args.get("tags"),
-                "unaggregated": str_to_bool(args.get("unaggregated"))
+                "unaggregated": argToBoolean(args.get("unaggregated"))
                 if args.get("unaggregated")
                 else None,
-                "exclude_aggregate": str_to_bool(args.get("exclude_aggregate"))
+                "exclude_aggregate": argToBoolean(args.get("exclude_aggregate"))
                 if args.get("exclude_aggregate")
                 else None,
                 "page": datadog_page,

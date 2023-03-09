@@ -3,7 +3,8 @@ commonfields:
   id: DatadogCloudSIEM
   version: -1
 configuration:
-- defaultvalue: datadoghq.com
+- additionalinfo: Datadog webiste URL
+  defaultvalue: datadoghq.com
   display: Datadog site url
   name: site
   required: true
@@ -127,9 +128,42 @@ script:
     execution: false
     name: datadog-event-create
     outputs:
-    - contextPath: Datadog.Event.id
-      description: The id of the event.
+    - contextPath: Datadog.Event.alert_type
+      description: 'Allowed enum values: error,warning,info,success,user_update,recommendation,snapshot'
+      type: String
+    - contextPath: Datadog.Event.date_happened
+      description: POSIX timestamp of the event
       type: Number
+    - contextPath: Datadog.Event.device_name
+      description: 'A device name. '
+      type: String
+    - contextPath: Datadog.Event.id
+      description: Integer ID of the event.
+      type: Number
+    - contextPath: Datadog.Event.priority
+      description: 'The priority of the event. For example, normal or low. Allowed
+        enum values: normal, low.'
+      type: String
+    - contextPath: Datadog.Event.text
+      description: The body of the event. Limited to 4000 characters. The text supports
+        markdown.
+      type: String
+    - contextPath: Datadog.Event.source_type_name
+      description: The type of event being posted.
+      type: String
+    - contextPath: Datadog.Event.tags
+      description: A list of tags to apply to the event.
+      type: Unknown
+    - contextPath: Datadog.Event.url
+      description: URL of the event.
+      type: String
+    - contextPath: Datadog.Event.status
+      description: The status of the event.
+      type: String
+    - contextPath: Datadog.Event.host
+      description: Host name to associate with the event. Any tags associated with
+        the host are also applied to this event.
+      type: String
   - arguments:
     - default: false
       description: The ID of the event.
@@ -259,6 +293,7 @@ script:
       description: Host name to associate with the event. Any tags associated with
         the host are also applied to this event.
       type: String
+  dockerimage: demisto/datadog-api-client:1.0.0.48939
   feed: false
   isfetch: false
   longRunning: false
