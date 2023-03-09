@@ -280,8 +280,11 @@ def get_events_command(configuration: Configuration, args: Dict[str, Any]):
                     settings={"TIMEZONE": "UTC"},
                 ).timestamp()
             )
-            end_time = date_string_to_timestamp(
-                args.get("end_date", datetime.now().strftime(DATE_FORMAT))
+            end_time = int(
+                parse(
+                    args.get("end_date", DEFAULT_TO_DATE),
+                    settings={"TIMEZONE": "UTC"},
+                ).timestamp()
             )
             page = arg_to_number(args.get("page"), arg_name="page")
             page_size = arg_to_number(args.get("page_size"), arg_name="page_size")

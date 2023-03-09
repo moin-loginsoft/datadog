@@ -40,7 +40,7 @@ This endpoint allows you to post events to the stream.
 | text | The body of the event.<br/><br/>Limited to 4000 characters.<br/> <br/>The text supports markdown. To use markdown in the event text, start the text block with %%% \n and end the text block with \n %%% . | Required | 
 | title | The title of an event. | Required | 
 | alert_type | If an alert event is enabled, set its type. Possible values are: error, warning, info, success, user_update, recommendation, snapshot. | Optional | 
-| date_happened | Limited to events no older than 18 hours.<br/><br/>Format : yyyy-MM-dd’T’HH:mm:ssZ . | Optional | 
+| date_happened | Limited to events no older than 18 hours <br/><br/>Format :  <br/>yyyy-MM-dd’T’HH:mm:ssZ <br/>or  <br/>“12 hours ago” <br/>or <br/>“-12 hours” <br/>or <br/>“15 min ago” <br/>or <br/>“-15 min” . | Optional | 
 | device_name | A device name. | Optional | 
 | host_name | Host name to associate with the event . | Optional | 
 | priority | The priority of the event. Possible values are: normal, low. | Optional | 
@@ -79,8 +79,8 @@ Get a list of Events / Get the details of a particular Event.
 | **Argument Name** | **Description** | **Required** |
 | --- | --- | --- |
 | event_id | The ID of the event. | Optional | 
-| start_date | Start Date <br/><br/>Format :  yyyy-MM-dd’T’HH:mm:ssZ Or  '-1days' . | Optional | 
-| end_date | End Date<br/> <br/>Format : yyyy-MM-dd’T’HH:mm:ssZ Or  '-1days' . | Optional | 
+| start_date | Start Date <br/><br/>Format :  <br/>yyyy-MM-dd’T’HH:mm:ssZ  <br/>or   <br/>“-1days” <br/>or <br/>“12 hours ago” <br/>or <br/>“-12 hours” <br/>or <br/>“15 min ago” <br/>or <br/>“-15 min” . | Optional | 
+| end_date | End Date <br/><br/>Default: now <br/>Format :  <br/>yyyy-MM-dd’T’HH:mm:ssZ  <br/>or   <br/>'-1 days' <br/>or <br/>“12 hours ago” <br/>or <br/>“-12 hours” <br/>or <br/>“15 min ago” <br/>or <br/>“-15 min” . | Optional | 
 | priority | The priority of the event. Possible values are: normal, low. | Optional | 
 | sources | A comma separated string of sources.<br/><br/>A complete list of source attribute values available here: https://docs.datadoghq.com/integrations/faq/list-of-api-source-attribute-value/. | Optional | 
 | tags | A comma separated list indicating what tags, if any, should be used to filter the list of events. <br/> <br/>Comma seperated string <br/><br/>Ex: "environment:production, region:East. | Optional | 

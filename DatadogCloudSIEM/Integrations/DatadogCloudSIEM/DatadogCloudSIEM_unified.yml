@@ -76,8 +76,9 @@ script:
       required: false
       secret: false
     - default: false
-      description: "Limited to events no older than 18 hours.\n\nFormat : yyyy-MM-dd’\
-        T’HH:mm:ssZ "
+      description: "Limited to events no older than 18 hours \n\nFormat :  \nyyyy-MM-dd’\
+        T’HH:mm:ssZ \nor  \n“12 hours ago” \nor \n“-12 hours” \nor \n“15 min ago”\
+        \ \nor \n“-15 min” "
       isArray: false
       name: date_happened
       required: false
@@ -181,13 +182,17 @@ script:
       required: false
       secret: false
     - default: false
-      description: "Start Date \n\nFormat :  yyyy-MM-dd’T’HH:mm:ssZ Or  '-1days' "
+      description: "Start Date \n\nFormat :  \nyyyy-MM-dd’T’HH:mm:ssZ  \nor   \n“\
+        -1days” \nor \n“12 hours ago” \nor \n“-12 hours” \nor \n“15 min ago” \nor\
+        \ \n“-15 min” "
       isArray: false
       name: start_date
       required: false
       secret: false
     - default: false
-      description: "End Date\n \nFormat : yyyy-MM-dd’T’HH:mm:ssZ Or  '-1days' "
+      description: "End Date \n\nDefault: now \nFormat :  \nyyyy-MM-dd’T’HH:mm:ssZ\
+        \  \nor   \n'-1 days' \nor \n“12 hours ago” \nor \n“-12 hours” \nor \n“15\
+        \ min ago” \nor \n“-15 min” "
       isArray: false
       name: end_date
       required: false
@@ -554,12 +559,6 @@ script:
                 outputs_key_field="id",
                 outputs=response.to_dict() if response and response.status == "ok" else {},
             )
-        # return CommandResults(
-        #     readable_output=readable_output,
-        #     outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Event",
-        #     outputs_key_field="id",
-        #     outputs=data,
-        # )
 
 
     def get_events_command(configuration: Configuration, args: Dict[str, Any]):
@@ -597,8 +596,11 @@ script:
                         settings={"TIMEZONE": "UTC"},
                     ).timestamp()
                 )
-                end_time = date_string_to_timestamp(
-                    args.get("end_date", datetime.now().strftime(DATE_FORMAT))
+                end_time = int(
+                    parse(
+                        args.get("end_date", DEFAULT_TO_DATE),
+                        settings={"TIMEZONE": "UTC"},
+                    ).timestamp()
                 )
                 page = arg_to_number(args.get("page"), arg_name="page")
                 page_size = arg_to_number(args.get("page_size"), arg_name="page_size")
