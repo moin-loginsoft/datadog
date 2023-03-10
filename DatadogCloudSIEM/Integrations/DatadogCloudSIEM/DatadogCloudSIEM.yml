@@ -5,12 +5,12 @@ commonfields:
 configuration:
 - additionalinfo: Datadog webiste URL
   defaultvalue: datadoghq.com
-  display: Datadog site url
+  display: Server URL
   name: site
   required: true
   type: 0
 - additionalinfo: The API Key to use for authentication
-  display: API key
+  display: API Key
   name: api_key
   required: true
   type: 0
@@ -32,15 +32,15 @@ description: |-
   Datadog is an observability service for cloud-scale applications, providing monitoring of servers, databases, tools, and services, through a SaaS-based data analytics platform.
 
   The SaaS platform integrates and automates infrastructure monitoring, application performance monitoring and log management to provide unified, real-time observability of our customers' entire technology stack.
-display: DatadogCloudSIEM
+display: Datadog Cloud SIEM
 name: DatadogCloudSIEM
 script:
   commands:
   - arguments:
     - default: false
-      description: "The body of the event.\n\nLimited to 4000 characters.\n \nThe\
-        \ text supports markdown. To use markdown in the event text, start the text\
-        \ block with %%% \\n and end the text block with \\n %%% "
+      description: "The body of the event.\nLimited to 4000 characters.\nThe text\
+        \ supports markdown. To use markdown in the event text, start the text block\
+        \ with %%% \\n and end the text block with \\n %%% "
       isArray: false
       name: text
       required: true
@@ -67,9 +67,8 @@ script:
       required: false
       secret: false
     - default: false
-      description: "Limited to events no older than 18 hours \n\nFormat :  \nyyyy-MM-dd’\
-        T’HH:mm:ssZ \nor  \n“12 hours ago” \nor \n“-12 hours” \nor \n“15 min ago”\
-        \ \nor \n“-15 min” "
+      description: "Limited to events no older than 18 hours.\nFormat :  \nyyyy-MM-dd’\
+        T’HH:mm:ssZ or “12 hours ago” or “-12 hours” or “15 min ago” or “-15 min”."
       isArray: false
       name: date_happened
       required: false
@@ -103,16 +102,16 @@ script:
       required: false
       secret: false
     - default: false
-      description: "A list of tags to apply to the event. \n \nComma seperated strings.\n\
-        \ \nEx: \"environment:production, region:East” "
+      description: "A list of tags to apply to the event. \nComma seperated strings.\n\
+        Ex: \"environment:production, region:East” "
       isArray: false
       name: tags
       required: false
       secret: false
     - default: false
-      description: "An arbitrary string to use for aggregation. \n \nIf you specify\
-        \ a key, all events using that key are grouped together in the Event Stream.\
-        \ \n\nLimited to 100 characters."
+      description: "An arbitrary string to use for aggregation. \nIf you specify a\
+        \ key, all events using that key are grouped together in the Event Stream.\
+        \ \nLimited to 100 characters."
       isArray: false
       name: aggregation_key
       required: false
@@ -173,17 +172,15 @@ script:
       required: false
       secret: false
     - default: false
-      description: "Start Date \n\nFormat :  \nyyyy-MM-dd’T’HH:mm:ssZ  \nor   \n“\
-        -1days” \nor \n“12 hours ago” \nor \n“-12 hours” \nor \n“15 min ago” \nor\
-        \ \n“-15 min” "
+      description: "Start Date \nFormat : yyyy-MM-dd’T’HH:mm:ssZ  or “-1days” or “\
+        12 hours ago” or “-12 hours” or “15 min ago” or “-15 min”. "
       isArray: false
       name: start_date
       required: false
       secret: false
     - default: false
-      description: "End Date \n\nDefault: now \nFormat :  \nyyyy-MM-dd’T’HH:mm:ssZ\
-        \  \nor   \n'-1 days' \nor \n“12 hours ago” \nor \n“-12 hours” \nor \n“15\
-        \ min ago” \nor \n“-15 min” "
+      description: "End Date \nDefault: now \nFormat : yyyy-MM-dd’T’HH:mm:ssZ or '-1\
+        \ days' or “12 hours ago” or “-12 hours” or “15 min ago” or “-15 min”. "
       isArray: false
       name: end_date
       required: false
@@ -201,7 +198,6 @@ script:
     - default: false
       description: |-
         A comma separated string of sources.
-
         A complete list of source attribute values available here: https://docs.datadoghq.com/integrations/faq/list-of-api-source-attribute-value/
       isArray: false
       name: sources
@@ -209,15 +205,15 @@ script:
       secret: false
     - default: false
       description: "A comma separated list indicating what tags, if any, should be\
-        \ used to filter the list of events. \n \nComma seperated string \n\nEx: \"\
-        environment:production, region:East"
+        \ used to filter the list of events. \nComma seperated string \nEx: \"environment:production,\
+        \ region:East\"."
       isArray: false
       name: tags
       required: false
       secret: false
     - auto: PREDEFINED
       default: false
-      description: Set unaggregated to true to return all events within the specified
+      description: Set unaggregated to 'true' to return all events within the specified
         [start,end] timeframe.
       isArray: false
       name: unaggregated
@@ -228,7 +224,7 @@ script:
       secret: false
     - auto: PREDEFINED
       default: false
-      description: Set exclude_aggregate to true to only return unaggregated events
+      description: Set exclude_aggregate to 'true' to only return unaggregated events
         where is_aggregate=false in the response.
       isArray: false
       name: exclude_aggregate

@@ -1,6 +1,5 @@
 from CommonServerPython import *  # noqa # pylint: disable=unused-wildcard-import
 from CommonServerUserPython import *  # noqa
-
 from urllib3 import disable_warnings
 from typing import Dict, Any
 from dateparser import parse
@@ -176,9 +175,16 @@ def test_module(configuration) -> str:
         with ApiClient(configuration) as api_client:
             api_instance = AuthenticationApi(api_client)
             api_instance.validate()
+
+            # Testing application key
+
+            api_instance = EventsApi(api_client)
+            start_time = parse("1 min ago", settings={"TIMEZONE": "UTC"}).timestamp()
+            end_time = parse(DEFAULT_TO_DATE, settings={"TIMEZONE": "UTC"}).timestamp()
+            api_instance.list_events(start=int(start_time), end=int(end_time))
             return "ok"
-    except Exception as e:
-        return "Authorization Error: make sure API Key, Application Key, Site URL is correctly set"
+    except Exception as ex:
+        return "Authorization Error: Make sure API Key, Application Key, Server URL is correctly set."
 
 
 def create_event_command(configuration: Configuration, args: Dict[str, Any]):
@@ -317,10 +323,11 @@ def get_events_command(configuration: Configuration, args: Dict[str, Any]):
                 readable_output = lookup_to_markdown(events_list, title)
             else:
                 readable_output = "No Events to present.\n"
+        print(data)
         return CommandResults(
             readable_output=readable_output,
             outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Event",
-            outputs_key_field="id",
+            outputs_key_field="id_str",
             outputs=data,
         )
 
