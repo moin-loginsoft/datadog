@@ -85,7 +85,7 @@ def is_within_18_hours(timestamp: int) -> bool:
     timestamp_time = datetime.fromtimestamp(timestamp)
     time_diff = current_time - timestamp_time
     time_diff_hours = time_diff.total_seconds() / 3600
-    return True if time_diff_hours <= 18 else False
+    return time_diff_hours <= 18
 
 
 def lookup_to_markdown(results: List[Dict], title: str) -> str:
@@ -101,10 +101,9 @@ def lookup_to_markdown(results: List[Dict], title: str) -> str:
 
     """
     headers = results[0] if results else {}
-    markdown = tableToMarkdown(
+    return tableToMarkdown(
         title, results, headers=list(headers.keys()), removeNull=True
     )
-    return markdown
 
 
 def event_for_lookup(event: Dict) -> Dict:
@@ -149,10 +148,12 @@ def pagination(limit: Optional[int], page: Optional[int], page_size: Optional[in
     if page_size is not None and page_size <= 0:
         raise DemistoException(PAGE_SIZE_ERROR_MSG)
 
-    page = DEFAULT_OFFSET if page is None else page - 1
-    page_size = DEFAULT_PAGE_SIZE if page_size is None else page_size
+    page = page - 1 if page else DEFAULT_OFFSET
+    page_size = page_size or DEFAULT_PAGE_SIZE
+    # page_size = DEFAULT_PAGE_SIZE if page_size is None else page_size
 
-    limit = limit if limit else (page_size if page_size else DEFAULT_PAGE_SIZE)
+    # limit = limit if limit else (page_size if page_size else DEFAULT_PAGE_SIZE)
+    limit = limit or page_size or DEFAULT_PAGE_SIZE
     offset = page * page_size
 
     return limit, offset
@@ -187,7 +188,7 @@ def test_module(configuration) -> str:
         return "Authorization Error: Make sure API Key, Application Key, Server URL is correctly set."
 
 
-def create_event_command(configuration: Configuration, args: Dict[str, Any]):
+def create_event_command(configuration: Configuration, args: Dict[str, Any]) -> CommandResults:
     """
     Creates an event in the Datadog.
 
@@ -216,7 +217,7 @@ def create_event_command(configuration: Configuration, args: Dict[str, Any]):
                 readable_output="The time of the event shall not be older than 18 hours!\n"
             )
 
-    data = {
+    event_body = {
         "title": args.get("title"),
         "text": args.get("text"),
         "tags": args.get("tags").split(",") if args.get("tags") else None,
@@ -235,8 +236,7 @@ def create_event_command(configuration: Configuration, args: Dict[str, Any]):
         else None,
         "source_type_name": args.get("source_type_name"),
     }
-    data = {key: value for key, value in data.items() if value is not None}
-    body = EventCreateRequest(**data)
+    body = EventCreateRequest(**{key: value for key, value in event_body.items() if value is not None})
 
     with ApiClient(configuration) as api_client:
         api_instance = EventsApi(api_client)
@@ -251,7 +251,7 @@ def create_event_command(configuration: Configuration, args: Dict[str, Any]):
         )
 
 
-def get_events_command(configuration: Configuration, args: Dict[str, Any]):
+def get_events_command(configuration: Configuration, args: Dict[str, Any]) -> CommandResults:
     """
     List or get details of events from Datadog.
 
@@ -274,32 +274,21 @@ def get_events_command(configuration: Configuration, args: Dict[str, Any]):
             if data:
                 data = data.to_dict()
                 results = [event_for_lookup(data)]
-                title = "Event Details"
-                readable_output = lookup_to_markdown(results, title)
+                readable_output = lookup_to_markdown(results, "Event Details")
             else:
                 readable_output = "No event to present.\n"
 
         else:
-            start_time = int(
-                parse(
-                    args.get("start_date", DEFAULT_FROM_DATE),
-                    settings={"TIMEZONE": "UTC"},
-                ).timestamp()
-            )
-            end_time = int(
-                parse(
-                    args.get("end_date", DEFAULT_TO_DATE),
-                    settings={"TIMEZONE": "UTC"},
-                ).timestamp()
-            )
+            start_time = parse(args.get("start_date", DEFAULT_FROM_DATE),settings={"TIMEZONE": "UTC"}).timestamp()
+            end_time = parse(args.get("end_date", DEFAULT_TO_DATE), settings={"TIMEZONE": "UTC"}).timestamp()
             page = arg_to_number(args.get("page"), arg_name="page")
             page_size = arg_to_number(args.get("page_size"), arg_name="page_size")
             limit = arg_to_number(args.get("limit"), arg_name="limit")
             limit, offset = pagination(limit, page, page_size)
             datadog_page = floor(offset / 1000) if offset / 1000 > 1 else None
             body_dict = {
-                "start": start_time,
-                "end": end_time,
+                "start": int(start_time),
+                "end": int(end_time),
                 "priority": args.get("priority"),
                 "sources": args.get("sources"),
                 "tags": args.get("tags"),
@@ -311,16 +300,13 @@ def get_events_command(configuration: Configuration, args: Dict[str, Any]):
                 else None,
                 "page": datadog_page,
             }
-
-            body = {key: value for key, value in body_dict.items() if value is not None}
-            response = api_instance.list_events(**body)
+            response = api_instance.list_events(**{key: value for key, value in body_dict.items() if value is not None})
             results = response.get("events", [])
             resp = results[offset : offset + limit]
             data = [event.to_dict() for event in resp]
             if data:
                 events_list = [event_for_lookup(event) for event in data]
-                title = get_command_title_string("Events", page, page_size)
-                readable_output = lookup_to_markdown(events_list, title)
+                readable_output = lookup_to_markdown(events_list, get_command_title_string("Events", page, page_size))
             else:
                 readable_output = "No Events to present.\n"
         return CommandResults(
