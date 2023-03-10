@@ -51,21 +51,6 @@ script:
       name: title
       required: true
       secret: false
-    - auto: PREDEFINED
-      default: false
-      description: If an alert event is enabled, set its type.
-      isArray: false
-      name: alert_type
-      predefined:
-      - error
-      - warning
-      - info
-      - success
-      - user_update
-      - recommendation
-      - snapshot
-      required: false
-      secret: false
     - default: false
       description: "Limited to events no older than 18 hours.\nFormat :  \nyyyy-MM-dd’\
         T’HH:mm:ssZ or “12 hours ago” or “-12 hours” or “15 min ago” or “-15 min”."
@@ -123,20 +108,29 @@ script:
       name: source_type_name
       required: false
       secret: false
+    - auto: PREDEFINED
+      default: false
+      description: If an alert event is enabled, set its type.
+      isArray: false
+      name: alert_type
+      predefined:
+      - error
+      - warning
+      - info
+      - success
+      - user_update
+      - recommendation
+      - snapshot
+      required: false
+      secret: false
     deprecated: false
     description: This endpoint allows you to post events to the stream.
     execution: false
     name: datadog-event-create
     outputs:
-    - contextPath: Datadog.Event.alert_type
-      description: 'Allowed enum values: error,warning,info,success,user_update,recommendation,snapshot'
-      type: String
     - contextPath: Datadog.Event.date_happened
       description: POSIX timestamp of the event
       type: Number
-    - contextPath: Datadog.Event.device_name
-      description: 'A device name. '
-      type: String
     - contextPath: Datadog.Event.id
       description: Integer ID of the event.
       type: Number
@@ -148,9 +142,6 @@ script:
       description: The body of the event. Limited to 4000 characters. The text supports
         markdown.
       type: String
-    - contextPath: Datadog.Event.source_type_name
-      description: The type of event being posted.
-      type: String
     - contextPath: Datadog.Event.tags
       description: A list of tags to apply to the event.
       type: Unknown
@@ -160,9 +151,8 @@ script:
     - contextPath: Datadog.Event.status
       description: The status of the event.
       type: String
-    - contextPath: Datadog.Event.host
-      description: Host name to associate with the event. Any tags associated with
-        the host are also applied to this event.
+    - contextPath: "Datadog.Event.title\t"
+      description: The event title.
       type: String
   - arguments:
     - default: false
@@ -179,8 +169,8 @@ script:
       required: false
       secret: false
     - default: false
-      description: "End Date \nDefault: now \nFormat : yyyy-MM-dd’T’HH:mm:ssZ or '-1\
-        \ days' or “12 hours ago” or “-12 hours” or “15 min ago” or “-15 min”. "
+      description: "End Date \nDefault: now \nFormat : yyyy-MM-dd’T’HH:mm:ssZ or \"\
+        -1 days\" or “12 hours ago” or “-12 hours” or “15 min ago” or “-15 min”. "
       isArray: false
       name: end_date
       required: false
@@ -278,9 +268,6 @@ script:
       description: The body of the event. Limited to 4000 characters. The text supports
         markdown.
       type: String
-    - contextPath: Datadog.Event.source_type_name
-      description: The type of event being posted.
-      type: String
     - contextPath: Datadog.Event.tags
       description: A list of tags to apply to the event.
       type: Unknown
@@ -293,6 +280,9 @@ script:
     - contextPath: Datadog.Event.host
       description: Host name to associate with the event. Any tags associated with
         the host are also applied to this event.
+      type: String
+    - contextPath: Datadog.Event.title
+      description: The Event title.
       type: String
   dockerimage: demisto/datadog-api-client:1.0.0.48939
   feed: false

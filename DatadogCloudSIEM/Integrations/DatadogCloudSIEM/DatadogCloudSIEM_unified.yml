@@ -32,15 +32,18 @@ description: |-
   Datadog is an observability service for cloud-scale applications, providing monitoring of servers, databases, tools, and services, through a SaaS-based data analytics platform.
 
   The SaaS platform integrates and automates infrastructure monitoring, application performance monitoring and log management to provide unified, real-time observability of our customers' entire technology stack.
-detaileddescription: |-
-  ## BaseIntegration Help
-
-  Markdown file for integration configuration  help snippet. In this file add:
-
-  - Brief information about how to retrieve the API key of your product
-  - Other useful information on how to configure your integration in XSOAR
-
-  Since this is a Markdown file, we encourage you to use MD formatting for sections, sub-sections, lists, etc.
+detaileddescription: "# Datadog Cloud SIEM\n\nDatadog is an observability service\
+  \ for cloud-scale applications, providing monitoring of servers, databases, tools,\
+  \ and services, through a SaaS-based data analytics platform.\n\nThe SaaS platform\
+  \ integrates and automates infrastructure monitoring, application performance monitoring\
+  \ and log management to provide unified, real-time observability of our customers'\
+  \ entire technology stack.\n\n## How to get a Datadog Cloud SIEM Credentials \n\
+  ### Create Datadog API Key and APP Key.\n\n1. To Create **API Key**: Navigate to\
+  \ **Account** > **Organization Settings** > **API Keys** and click **New Key**.\
+  \  \n\n2. In the New API Key popup enter **Name** and click on **Create Key**. \n\
+  \n3. To Create **APP Key**: Navigate to **Account** > **Organization Settings**\
+  \ > **Application Keys** and click **New Key**.\n\n4. In the New Key popup enter\
+  \ **Name** and click on **Create Key**. \n\n\nFor more information please see: [log-into-datadog](https://app.datadoghq.com/)."
 display: Datadog Cloud SIEM
 name: DatadogCloudSIEM
 script:
@@ -59,21 +62,6 @@ script:
       isArray: false
       name: title
       required: true
-      secret: false
-    - auto: PREDEFINED
-      default: false
-      description: If an alert event is enabled, set its type.
-      isArray: false
-      name: alert_type
-      predefined:
-      - error
-      - warning
-      - info
-      - success
-      - user_update
-      - recommendation
-      - snapshot
-      required: false
       secret: false
     - default: false
       description: "Limited to events no older than 18 hours.\nFormat :  \nyyyy-MM-dd’\
@@ -132,20 +120,29 @@ script:
       name: source_type_name
       required: false
       secret: false
+    - auto: PREDEFINED
+      default: false
+      description: If an alert event is enabled, set its type.
+      isArray: false
+      name: alert_type
+      predefined:
+      - error
+      - warning
+      - info
+      - success
+      - user_update
+      - recommendation
+      - snapshot
+      required: false
+      secret: false
     deprecated: false
     description: This endpoint allows you to post events to the stream.
     execution: false
     name: datadog-event-create
     outputs:
-    - contextPath: Datadog.Event.alert_type
-      description: 'Allowed enum values: error,warning,info,success,user_update,recommendation,snapshot'
-      type: String
     - contextPath: Datadog.Event.date_happened
       description: POSIX timestamp of the event
       type: Number
-    - contextPath: Datadog.Event.device_name
-      description: 'A device name. '
-      type: String
     - contextPath: Datadog.Event.id
       description: Integer ID of the event.
       type: Number
@@ -157,9 +154,6 @@ script:
       description: The body of the event. Limited to 4000 characters. The text supports
         markdown.
       type: String
-    - contextPath: Datadog.Event.source_type_name
-      description: The type of event being posted.
-      type: String
     - contextPath: Datadog.Event.tags
       description: A list of tags to apply to the event.
       type: Unknown
@@ -169,9 +163,8 @@ script:
     - contextPath: Datadog.Event.status
       description: The status of the event.
       type: String
-    - contextPath: Datadog.Event.host
-      description: Host name to associate with the event. Any tags associated with
-        the host are also applied to this event.
+    - contextPath: "Datadog.Event.title\t"
+      description: The event title.
       type: String
   - arguments:
     - default: false
@@ -188,8 +181,8 @@ script:
       required: false
       secret: false
     - default: false
-      description: "End Date \nDefault: now \nFormat : yyyy-MM-dd’T’HH:mm:ssZ or '-1\
-        \ days' or “12 hours ago” or “-12 hours” or “15 min ago” or “-15 min”. "
+      description: "End Date \nDefault: now \nFormat : yyyy-MM-dd’T’HH:mm:ssZ or \"\
+        -1 days\" or “12 hours ago” or “-12 hours” or “15 min ago” or “-15 min”. "
       isArray: false
       name: end_date
       required: false
@@ -287,9 +280,6 @@ script:
       description: The body of the event. Limited to 4000 characters. The text supports
         markdown.
       type: String
-    - contextPath: Datadog.Event.source_type_name
-      description: The type of event being posted.
-      type: String
     - contextPath: Datadog.Event.tags
       description: A list of tags to apply to the event.
       type: Unknown
@@ -302,6 +292,9 @@ script:
     - contextPath: Datadog.Event.host
       description: Host name to associate with the event. Any tags associated with
         the host are also applied to this event.
+      type: String
+    - contextPath: Datadog.Event.title
+      description: The Event title.
       type: String
   dockerimage: demisto/datadog-api-client:1.0.0.48939
   feed: false
@@ -635,11 +628,10 @@ script:
                     readable_output = lookup_to_markdown(events_list, title)
                 else:
                     readable_output = "No Events to present.\n"
-            print(data)
             return CommandResults(
                 readable_output=readable_output,
                 outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Event",
-                outputs_key_field="id_str",
+                outputs_key_field="id",
                 outputs=data,
             )
 

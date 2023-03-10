@@ -323,11 +323,10 @@ def get_events_command(configuration: Configuration, args: Dict[str, Any]):
                 readable_output = lookup_to_markdown(events_list, title)
             else:
                 readable_output = "No Events to present.\n"
-        print(data)
         return CommandResults(
             readable_output=readable_output,
             outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Event",
-            outputs_key_field="id_str",
+            outputs_key_field="id",
             outputs=data,
         )
 
