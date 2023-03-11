@@ -14,7 +14,7 @@ configuration:
   name: api_key
   required: true
   type: 0
-- additionalinfo: The API Key to use for authentication.
+- additionalinfo: The application key to use for authentication.
   display: Application Key
   hidden: false
   name: app_key
@@ -284,6 +284,95 @@ script:
     - contextPath: Datadog.Event.title
       description: The Event title.
       type: String
+  - arguments:
+    - default: false
+      isArray: false
+      name: page
+      required: false
+      secret: false
+    - default: false
+      description: 'No of tags to be fetched '
+      isArray: false
+      name: page_size
+      required: false
+      secret: false
+    - default: false
+      description: 'Default tags to be fetched '
+      isArray: false
+      name: limit
+      required: false
+      secret: false
+    - default: false
+      description: 'When specified, filters host list to those tags with the specified
+        source. '
+      isArray: false
+      name: source
+      required: false
+      secret: false
+    deprecated: false
+    description: Return a mapping of tags to hosts for your whole infrastructure.
+    execution: false
+    name: datadog-tag-list
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    - default: false
+      description: A list of tags to apply to the host.
+      isArray: false
+      name: tags
+      required: true
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to add new tags to a host, optionally specifying
+      where these tags come from.
+    execution: false
+    name: datadog-host-tag-create
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    deprecated: false
+    description: Return the list of tags that apply to a given host.
+    execution: false
+    name: datadog-host-tag-get
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    - default: false
+      description: "A list of tags to apply to the host  \n \nPrevious tags will be\
+        \ replaced by new tags. \n \nComma seperated values."
+      isArray: false
+      name: tags
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to replace all tags in an integration source
+      with those supplied in the request.
+    execution: false
+    name: datadog-host-tag-update
+  - arguments:
+    - default: false
+      description: Host name to remove associated tags.
+      isArray: false
+      name: host_name
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to remove all user-assigned tags for a single
+      host.
+    execution: false
+    name: datadog-host-tag-delete
   dockerimage: demisto/datadog-api-client:1.0.0.48939
   feed: false
   isfetch: false

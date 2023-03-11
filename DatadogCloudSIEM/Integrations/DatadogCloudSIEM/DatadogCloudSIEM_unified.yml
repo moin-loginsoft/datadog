@@ -14,7 +14,7 @@ configuration:
   name: api_key
   required: true
   type: 0
-- additionalinfo: The API Key to use for authentication.
+- additionalinfo: The application key to use for authentication.
   display: Application Key
   hidden: false
   name: app_key
@@ -296,6 +296,95 @@ script:
     - contextPath: Datadog.Event.title
       description: The Event title.
       type: String
+  - arguments:
+    - default: false
+      isArray: false
+      name: page
+      required: false
+      secret: false
+    - default: false
+      description: 'No of tags to be fetched '
+      isArray: false
+      name: page_size
+      required: false
+      secret: false
+    - default: false
+      description: 'Default tags to be fetched '
+      isArray: false
+      name: limit
+      required: false
+      secret: false
+    - default: false
+      description: 'When specified, filters host list to those tags with the specified
+        source. '
+      isArray: false
+      name: source
+      required: false
+      secret: false
+    deprecated: false
+    description: Return a mapping of tags to hosts for your whole infrastructure.
+    execution: false
+    name: datadog-tag-list
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    - default: false
+      description: A list of tags to apply to the host.
+      isArray: false
+      name: tags
+      required: true
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to add new tags to a host, optionally specifying
+      where these tags come from.
+    execution: false
+    name: datadog-host-tag-create
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    deprecated: false
+    description: Return the list of tags that apply to a given host.
+    execution: false
+    name: datadog-host-tag-get
+  - arguments:
+    - default: false
+      description: The host name.
+      isArray: false
+      name: host_name
+      required: true
+      secret: false
+    - default: false
+      description: "A list of tags to apply to the host  \n \nPrevious tags will be\
+        \ replaced by new tags. \n \nComma seperated values."
+      isArray: false
+      name: tags
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to replace all tags in an integration source
+      with those supplied in the request.
+    execution: false
+    name: datadog-host-tag-update
+  - arguments:
+    - default: false
+      description: Host name to remove associated tags.
+      isArray: false
+      name: host_name
+      required: false
+      secret: false
+    deprecated: false
+    description: This endpoint allows you to remove all user-assigned tags for a single
+      host.
+    execution: false
+    name: datadog-host-tag-delete
   dockerimage: demisto/datadog-api-client:1.0.0.48939
   feed: false
   isfetch: false
@@ -303,19 +392,23 @@ script:
   longRunningPort: false
   runonce: false
   script: |-
-    # noqa # pylint: disable=unused-wildcard-import
-      # noqa
-    from urllib3 import disable_warnings
-    from typing import Dict, Any
-    from dateparser import parse
+    from datetime import datetime
+    from math import floor
+    from typing import Any, Dict
+
+      # noqa: F401 # pylint: disable=unused-wildcard-import
+      # noqa: F401
     from datadog_api_client import ApiClient, Configuration
     from datadog_api_client.v1.api.authentication_api import AuthenticationApi
     from datadog_api_client.v1.api.events_api import EventsApi
+    from datadog_api_client.v1.model.event import Event
+    from datadog_api_client.v1.model.event_alert_type import EventAlertType
     from datadog_api_client.v1.model.event_create_request import EventCreateRequest
     from datadog_api_client.v1.model.event_priority import EventPriority
-    from datadog_api_client.v1.model.event_alert_type import EventAlertType
-    from datetime import datetime
-    from math import floor
+    from datadog_api_client.v1.api.tags_api import TagsApi
+    from datadog_api_client.v1.model.host_tags import HostTags
+    from dateparser import parse
+    from urllib3 import disable_warnings
 
     # Disable insecure warnings
     disable_warnings()
@@ -330,29 +423,13 @@ script:
     DEFAULT_FROM_DATE = "-7days"
     DEFAULT_TO_DATE = "now"
     INTEGRATION_CONTEXT_NAME = "Datadog"
+    HOUR_SECONDS = 3600
+    NO_RESP_FROM_API_MSG = "API didn't return any results for given search parameters."
+    ERROR_MSG = "Something went wrong!\n"
+
 
     # """ HELPER FUNCTIONS """
 
-
-    def date_string_to_timestamp(date: str) -> int:
-        """
-        Convert a date string in the format 'YYYY-MM-DD HH:MM:SS' to a Unix timestamp.
-
-        Args:
-            date (str): A date string in the format 'YYYY-MM-DD HH:MM:SS'.
-
-        Returns:
-            int: The Unix timestamp corresponding to the given date string.
-
-        Raises:
-            ValueError: If the input date string is not in the correct format.
-        """
-        try:
-            return int(datetime.strptime(date, DATE_FORMAT).timestamp())
-        except ValueError:
-            raise ValueError(
-                f"Invalid date string format: {date}. Please use format: {DATE_FORMAT}"
-            )
 
 
     def get_command_title_string(
@@ -376,21 +453,22 @@ script:
         return f"{sub_context} List"
 
 
-    def is_within_18_hours(timestamp: int) -> bool:
+    def is_within_time(timestamp: int, time: int = 18) -> bool:
         """
-        Check if a given Unix timestamp is within the last 18 hours.
+        Check if a given Unix timestamp is within the time.
 
         Args:
-            timestamp (int): A Unix timestamp.
+            timestamp (int): A Unix timestamp(in seconds).
+            time (int): Time in hours.
 
         Returns:
-            bool: True if the given timestamp is within the last 18 hours, False otherwise.
+            bool: True if the given timestamp is within the time, False otherwise.
         """
         current_time = datetime.now()
         timestamp_time = datetime.fromtimestamp(timestamp)
         time_diff = current_time - timestamp_time
-        time_diff_hours = time_diff.total_seconds() / 3600
-        return time_diff_hours <= 18
+        time_diff_hours = time_diff.total_seconds() / HOUR_SECONDS
+        return time_diff_hours <= time
 
 
     def lookup_to_markdown(results: List[Dict], title: str) -> str:
@@ -455,9 +533,7 @@ script:
 
         page = page - 1 if page else DEFAULT_OFFSET
         page_size = page_size or DEFAULT_PAGE_SIZE
-        # page_size = DEFAULT_PAGE_SIZE if page_size is None else page_size
 
-        # limit = limit if limit else (page_size if page_size else DEFAULT_PAGE_SIZE)
         limit = limit or page_size or DEFAULT_PAGE_SIZE
         offset = page * page_size
 
@@ -479,23 +555,29 @@ script:
         """
         try:
             with ApiClient(configuration) as api_client:
+                # Testing api key
                 api_instance = AuthenticationApi(api_client)
                 api_instance.validate()
 
                 # Testing application key
 
                 api_instance = EventsApi(api_client)
-                start_time = parse("1 min ago", settings={"TIMEZONE": "UTC"}).timestamp()
-                end_time = parse(DEFAULT_TO_DATE, settings={"TIMEZONE": "UTC"}).timestamp()
-                api_instance.list_events(start=int(start_time), end=int(end_time))
+                start_time = parse("1 min ago", settings={"TIMEZONE": "UTC"})
+                end_time = parse(DEFAULT_TO_DATE, settings={"TIMEZONE": "UTC"})
+                api_instance.list_events(
+                    start=int(start_time.timestamp() if start_time else 0),
+                    end=int(end_time.timestamp() if end_time else 0),
+                )
                 return "ok"
-        except Exception as ex:
+        except Exception:
             return "Authorization Error: Make sure API Key, Application Key, Server URL is correctly set."
 
 
-    def create_event_command(configuration: Configuration, args: Dict[str, Any]) -> CommandResults:
+    def create_event_command(
+        configuration: Configuration, args: Dict[str, Any]
+    ) -> Union[CommandResults, DemistoException]:
         """
-        Creates an event in the Datadog.
+        Creates an event in Datadog.
 
         Args:
             configuration (Configuration): The configuration object for Datadog.
@@ -514,49 +596,52 @@ script:
             return DemistoException("Alert type not in allowed values.")
         date_happened = args.get("date_happened")
         if date_happened:
-            date_happened_timestamp = int(
-                parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
-            )
-            if not is_within_18_hours(date_happened_timestamp):
+            date_happened_timestamp = parse(date_happened, settings={"TIMEZONE": "UTC"})
+            if not is_within_time(
+                int(date_happened_timestamp.timestamp() if date_happened_timestamp else 0)
+            ):
                 return CommandResults(
-                    readable_output="The time of the event shall not be older than 18 hours!\n"
+                    readable_output="The time of the event cannot be older than 18 hours!\n"
                 )
-
+        date_happened = parse(date_happened, settings={"TIMEZONE": "UTC"})
         event_body = {
             "title": args.get("title"),
             "text": args.get("text"),
-            "tags": args.get("tags").split(",") if args.get("tags") else None,
+            "tags": args.get("tags", []).split(",") if args.get("tags") else None,
             "alert_type": EventAlertType(args.get("alert_type")),
             "priority": EventPriority(args.get("priority")),
             "aggregation_key": args.get("aggregation_key"),
-            "related_event_id": int(args.get("related_event_id"))
+            "related_event_id": int(args.get("related_event_id", 0))
             if args.get("related_event_id")
             else None,
             "host": args.get("host_name"),
             "device_name": args.get("device_name"),
-            "date_happened": int(
-                parse(date_happened, settings={"TIMEZONE": "UTC"}).timestamp()
-            )
-            if date_happened
-            else None,
+            "date_happened": int(date_happened.timestamp()) if date_happened else None,
             "source_type_name": args.get("source_type_name"),
         }
-        body = EventCreateRequest(**{key: value for key, value in event_body.items() if value is not None})
+        body = EventCreateRequest(
+            **{key: value for key, value in event_body.items() if value is not None}
+        )
 
         with ApiClient(configuration) as api_client:
             api_instance = EventsApi(api_client)
             response = api_instance.create_event(body=body)
-            return CommandResults(
-                readable_output="Event created successfully!"
+            readable_output = (
+                "Event created successfully!"
                 if response and response.status == "ok"
-                else "Something went wrong!",
+                else ERROR_MSG
+            )
+            return CommandResults(
+                readable_output=readable_output,
                 outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Event",
                 outputs_key_field="id",
                 outputs=response.to_dict() if response and response.status == "ok" else {},
             )
 
 
-    def get_events_command(configuration: Configuration, args: Dict[str, Any]) -> CommandResults:
+    def get_events_command(
+        configuration: Configuration, args: Dict[str, Any]
+    ) -> Union[CommandResults, DemistoException]:
         """
         List or get details of events from Datadog.
 
@@ -578,22 +663,26 @@ script:
                 data = response.get("event", {})
                 if data:
                     data = data.to_dict()
-                    results = [event_for_lookup(data)]
-                    readable_output = lookup_to_markdown(results, "Event Details")
+                    event_results = [event_for_lookup(data)]
+                    readable_output = lookup_to_markdown(event_results, "Event Details")
                 else:
                     readable_output = "No event to present.\n"
 
             else:
-                start_time = parse(args.get("start_date", DEFAULT_FROM_DATE),settings={"TIMEZONE": "UTC"}).timestamp()
-                end_time = parse(args.get("end_date", DEFAULT_TO_DATE), settings={"TIMEZONE": "UTC"}).timestamp()
+                start_time = parse(
+                    args.get("start_date", DEFAULT_FROM_DATE), settings={"TIMEZONE": "UTC"}
+                )
+                end_time = parse(
+                    args.get("end_date", DEFAULT_TO_DATE), settings={"TIMEZONE": "UTC"}
+                )
                 page = arg_to_number(args.get("page"), arg_name="page")
                 page_size = arg_to_number(args.get("page_size"), arg_name="page_size")
                 limit = arg_to_number(args.get("limit"), arg_name="limit")
                 limit, offset = pagination(limit, page, page_size)
                 datadog_page = floor(offset / 1000) if offset / 1000 > 1 else None
                 body_dict = {
-                    "start": int(start_time),
-                    "end": int(end_time),
+                    "start": int(start_time.timestamp() if start_time else 0),
+                    "end": int(end_time.timestamp() if end_time else 0),
                     "priority": args.get("priority"),
                     "sources": args.get("sources"),
                     "tags": args.get("tags"),
@@ -605,21 +694,115 @@ script:
                     else None,
                     "page": datadog_page,
                 }
-                response = api_instance.list_events(**{key: value for key, value in body_dict.items() if value is not None})
-                results = response.get("events", [])
-                resp = results[offset : offset + limit]
+                response = api_instance.list_events(
+                    **{key: value for key, value in body_dict.items() if value is not None}
+                )
+                results: List[Event] = response.get("events", [])
+                resp: List[Event] = results[offset: offset + limit]
                 data = [event.to_dict() for event in resp]
                 if data:
                     events_list = [event_for_lookup(event) for event in data]
-                    readable_output = lookup_to_markdown(events_list, get_command_title_string("Events", page, page_size))
+                    readable_output = lookup_to_markdown(
+                        events_list, get_command_title_string("Events", page, page_size)
+                    )
                 else:
-                    readable_output = "No Events to present.\n"
+                    readable_output = NO_RESP_FROM_API_MSG
             return CommandResults(
                 readable_output=readable_output,
                 outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Event",
                 outputs_key_field="id",
                 outputs=data,
             )
+
+
+    def get_tags_command(configuration, args):
+        with ApiClient(configuration) as api_client:
+            tags_api = TagsApi(api_client)
+            page = arg_to_number(args.get("page"), arg_name="page")
+            page_size = arg_to_number(args.get("page_size"), arg_name="page_size")
+            limit = arg_to_number(args.get("limit"), arg_name="limit")
+            limit, offset = pagination(limit, page, page_size)
+            source = args.get("source")
+            response = tags_api.list_host_tags() if not source else tags_api.list_host_tags(source=source)
+            results = response.get("tags", {})
+            if results:
+                tags_list = [{"Tag": k, "Host": v} for k, v in results.items()]
+                tags_list = tags_list[offset: offset + limit]
+                readable_output = lookup_to_markdown(tags_list, "Tags List")
+            else:
+                readable_output = NO_RESP_FROM_API_MSG
+            return CommandResults(
+                readable_output=readable_output,
+                outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Tags",
+                outputs_key_field="tags",
+                outputs=tags_list if results else [],
+            )
+
+    def get_host_tags_command(configuration, args):
+        host_name = args.get("host_name")
+        with ApiClient(configuration) as api_client:
+            tags_api = TagsApi(api_client)
+            response = tags_api.get_host_tags(host_name=host_name)
+            tags = response.get("tags", [])
+        tags_list = []
+        if tags:
+            tags_list = [{"Tags": tag} for tag in tags]
+            readable_output = lookup_to_markdown(tags_list, "Host Tags List")
+        else:
+            readable_output = NO_RESP_FROM_API_MSG
+
+        return CommandResults(
+            readable_output=readable_output,
+            outputs_prefix=f"{INTEGRATION_CONTEXT_NAME}.Tags",
+            outputs_key_field="tags",
+            outputs=tags_list,
+        )
+
+    def add_tags_to_host_command(configuration, args):
+        host_name = args.get("host_name")
+        tags = argToList(args.get('tags'), ",")
+
+        body = HostTags(host=host_name, tags=tags)
+
+        with ApiClient(configuration) as api_client:
+            tags_api = TagsApi(api_client)
+            response = tags_api.create_host_tags(host_name=host_name, body=body)
+
+        if response and response.get("host"):
+            readable_output = "Tags added to host successfully!"
+        else:
+            readable_output = ERROR_MSG
+
+        return CommandResults(
+            readable_output=readable_output,
+        )
+
+    def update_host_tags_command(configuration, args):
+        host_name = args.get('host_name')
+        tags = argToList(args.get('tags'), ",")
+
+        body = HostTags(host=host_name, tags=tags)
+
+        with ApiClient(configuration) as api_client:
+            tags_api = TagsApi(api_client)
+            response = tags_api.update_host_tags(host_name=host_name, body=body)
+
+        if response and response.get("host"):
+            readable_output = "Tags updated to host successfully!"
+        else:
+            readable_output = ERROR_MSG
+
+        return CommandResults(
+            readable_output=readable_output,
+        )
+
+    def delete_host_tags_command(configuration, args):
+        host_name = args.get('host_name')
+        with ApiClient(configuration) as api_client:
+            tags_api = TagsApi(api_client)
+            tags_api.delete_host_tags(host_name=host_name)
+            readable_output = "Host tags deleted successfully!"
+        return CommandResults(readable_output=readable_output)
 
 
     """ MAIN FUNCTION """
@@ -640,6 +823,11 @@ script:
             commands = {
                 "datadog-event-create": create_event_command,
                 "datadog-event-list": get_events_command,
+                "datadog-tag-list": get_tags_command,
+                "datadog-host-tag-create": add_tags_to_host_command,
+                "datadog-host-tag-get": get_host_tags_command,
+                "datadog-host-tag-update": update_host_tags_command,
+                "datadog-host-tag-delete": delete_host_tags_command,
             }
             if command == "test-module":
                 return_results(test_module(configuration))
